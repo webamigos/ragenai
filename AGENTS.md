@@ -279,15 +279,13 @@ Uses `@prisma/adapter-pg`. Config: `prisma.config.ts` (excluded from tsconfig). 
 
 `prisma/schema.prisma` is the **single shared schema for the whole monorepo** — `apps/api` (NestJS) generates its own client from the same file via a second `generator apiClient` block (output `apps/api/src/generated/prisma`). One `prisma generate` at the repo root regenerates both. Do not create a separate schema for another app — add another `generator` block here instead. See `docs/adrs/21-monorepo-and-api-decoupling.md`.
 
-Import `PrismaClient`, enums, and types from `@/generated/prisma/client`. Webpack auto-redirects this to `@/generated/prisma/browser` in client components.
+Import `PrismaClient`, enums and types from `@/generated/prisma/client` in **server** code; a client component imports `@/generated/prisma/browser`. Nothing redirects between them — the webpack block that claimed to never ran. Getting it wrong fails the build with a Turbopack panic that names no file, so `tests/architecture/client-bundles-stay-browser-safe.test.ts` catches it first.
 
-**Tenant-scope guard (warn-only)**: a Prisma Client Extension that logs a
-warning when a query on a tenant-scoped model runs without its org field. It
-covers ~20 models with a direct org column and **does not cover** models scoped
-only through a relation (`Message`, `ThreadDocument`, `DocumentPermission`,
-`ProjectPermission`, `ThreadShare*`). It **warns, it does not throw** — it is
+**Tenant-scope guard (warn-only)**: a Prisma Client Extension that warns when a
+query on a tenant-scoped model runs without its org field. It **warns, it does
+not throw**, and it does not cover models scoped only through a relation — it is
 not a substitute for getting the `where` clause right. The model map lives once,
-in `@ragenai/platform-contracts` (ADR-33). Full detail:
+in `@ragenai/platform-contracts` (ADR-33). Which models, and why it only warns:
 [`docs/tenant-scope-guard.md`](docs/tenant-scope-guard.md).
 
 ### Libraries (`src/libs/`)
@@ -378,7 +376,7 @@ Moved to [`docs/settings-pages.md`](docs/settings-pages.md) — see the Task Rou
 - i18n: `en`/`pl` via `next-intl`. Use `Link`/`redirect`/`usePathname`/`useRouter` from `@/i18n/routing` (NOT `next/link` or `next/navigation`).
 - Tailwind v4 with `@theme` directive in `src/app/[locale]/global.css`. Brand colors: Ragen red `#cb1d3d`, Ragen blue `#252d53`.
 - Error classes: `UnauthorizedException`, `NotFoundException`, `LimitExceededException`. Temporal workflows: reference by string name, not function import.
-- Logging: Pino w/ OpenTelemetry; webpack swaps server → client logger on client builds.
+- Logging: Pino w/ OpenTelemetry. Import `@/app/lib/utils/logger`, which picks server or client at **runtime** on `typeof window`; nothing swaps them at build time.
 - Observability: OTel traces/metrics/logs via `src/instrumentation.ts` + `instrumentation-client.ts`; auto-instrumentation covers HTTP, Postgres, Prisma and outgoing `fetch`. **All of it is a no-op unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set.** LLM tracing is LiteLLM → Langfuse, not app OTel. See [ADR-22](docs/adrs/22-observability-opentelemetry.md).
 - Pre-commit: lint-staged runs `eslint --fix` + `prettier --write`, dispatching each file to its own workspace in `lint-staged.config.mjs` — add an entry there when you add a workspace. Conventional commits, enforced by commitlint.
 
