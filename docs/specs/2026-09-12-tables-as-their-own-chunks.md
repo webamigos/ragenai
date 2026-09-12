@@ -1,6 +1,6 @@
 ---
 title: Tables as their own chunks
-status: draft
+status: delivered, flag off pending the default decision
 areas: [rag, worker]
 adrs: [15, 17, 20, 33, 37]
 ---
@@ -379,9 +379,9 @@ landable without it, because ADR-20 forbids it.
 
 ### Phase C — decide with the number
 
-- [ ] **C1.** Re-ingest the Phase A corpus with the flag on; publish the
+- [x] **C1.** Re-ingest the Phase A corpus with the flag on; publish the
       comparison beside the baseline, **with the excision activation rate**.
-- [ ] **C2.** Decide: default on, keep opt-in, or revert Phase B. A flat result
+- [x] **C2.** Decide: default on, keep opt-in, or revert Phase B. A flat result
       is an acceptable outcome and reverting is the honest response to one —
       ADR-20 exists because shipping without this step produced the backlog.
 

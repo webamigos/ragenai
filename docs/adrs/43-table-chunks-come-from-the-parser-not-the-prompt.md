@@ -1,6 +1,6 @@
 # ADR-43: Table Chunks Come From the Parser, Not From the Prompt
 
-**Status:** Accepted, shipped behind a flag, awaiting the Phase C decision.
+**Status:** Accepted, shipped behind a flag. Measured; the default has not been flipped.
 **Date:** 2026-09-12
 **Supersedes:** the Phase 4c half of [ADR-20](./20-pause-and-measure-rag-quality.md)'s Path B.
 
@@ -92,8 +92,26 @@ an operator sells or grants. A chunking strategy resolved per organization
 would put two chunk shapes in one Qdrant collection.
 
 ADR-20 forbids shipping a chunking change without a number, and the number
-exists:
-[`apps/web/evals/rag-benchmark/results/2026-09-12-tabele-bilingual-v1-baseline.md`](../../apps/web/evals/rag-benchmark/results/2026-09-12-tabele-bilingual-v1-baseline.md).
+exists. Three runs each way, on two corpora
+([comparison](../../apps/web/evals/rag-benchmark/results/2026-09-12-table-chunks-comparison.md),
+[baseline](../../apps/web/evals/rag-benchmark/results/2026-09-12-tabele-bilingual-v1-baseline.md)):
+
+| Corpus | Off | On |
+| --- | --- | --- |
+| `tabele-bilingual-v1` — documents that are mostly wide tables | 10/18 | **13/18** |
+| `kolej-bilingual-v1` — general | 20/24 | 21/24 |
+
+Medians, against a control of 0 in every baseline run. The flag-on floor on the
+table corpus (12) sits above the flag-off ceiling (10), so the two sets of runs
+do not overlap. Every document that had a table had it excised — thirteen
+documents, no refusals.
+
+**The default is still off.** Turning it on changes chunking for every
+installation on its next ingest, and documents already indexed keep the old
+shape until re-indexed, so a collection holds both for a while. The evidence
+supports flipping it; the flip is a product call with a migration attached and
+is not made here.
+
 Building that baseline was itself a finding — the existing `kolej-bilingual-v1`
 corpus cannot see this failure, because its two tables are five rows each and
 are never split, and a first draft of the new corpus could not see it either
