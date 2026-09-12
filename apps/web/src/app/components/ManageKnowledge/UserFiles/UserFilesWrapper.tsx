@@ -318,10 +318,14 @@ export const FileListWrapperWithData = ({
     setIsBulkPolicyOpen(true);
   }, []);
 
+  const { isSelected: isFileSelected } = bulk;
   const handleDragFiles = useCallback(
     (fileId: string) =>
-      bulk.isSelected(fileId) && fileIds.length > 0 ? fileIds : [fileId],
-    [bulk, fileIds],
+      isFileSelected(fileId) && fileIds.length > 0 ? fileIds : [fileId],
+    // `bulk` itself is a fresh object every render — depending on it would
+    // rebuild this callback each time and defeat the memo. `isSelected` is
+    // the stable half.
+    [isFileSelected, fileIds],
   );
 
   const handleBulkDelete = async () => {
@@ -1051,9 +1055,7 @@ export const FileListWrapperWithData = ({
         isLoading={isBulkLoading}
         count={policyRowFileId ? 1 : bulk.selectedCount}
         fileName={policyRowFile?.fileName}
-        initialPolicy={
-          (policyRowFile?.piiPolicy as PiiPolicyValue | undefined) ?? undefined
-        }
+        initialPolicy={policyRowFile?.piiPolicy ?? undefined}
         onClose={() => {
           setIsBulkPolicyOpen(false);
           setPolicyRowFileId(null);

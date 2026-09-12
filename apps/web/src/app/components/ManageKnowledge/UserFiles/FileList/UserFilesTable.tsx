@@ -8,7 +8,6 @@ import {
   EmbeddingStatus,
   ParsingStatus,
   type FileType,
-  type PiiPolicy,
   type UserFile,
 } from '@/generated/prisma/browser';
 import { cn } from '@/lib/utils';
@@ -457,7 +456,17 @@ const FileRow = ({
             menu; this was the one that had climbed out of it.
           */
           <Td>
-            <PiiPolicyBadge piiPolicy={file.piiPolicy as PiiPolicy} compact />
+            {/*
+              Rendered only when the policy is actually there. The column is
+              NOT NULL with a default, so in practice it always is — but the
+              contract type says `PiiPolicy | null | undefined`, and casting
+              that away would hand `PiiPolicyBadge` an undefined key to index
+              its tint and label maps with. An empty cell is the honest answer
+              if a query ever stops selecting the field.
+            */}
+            {file.piiPolicy ? (
+              <PiiPolicyBadge piiPolicy={file.piiPolicy} compact />
+            ) : null}
           </Td>
         )}
         <Td className="text-right" onClick={(e) => e.stopPropagation()}>
