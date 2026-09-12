@@ -68,6 +68,7 @@ import type {
   PaginatedUserFilesResult,
   UserFilesSort,
   UserFilesSortDir,
+  DocumentFolderItem,
 } from '@/features/documents/contracts/document.types';
 import type {
   FileType,
@@ -100,6 +101,18 @@ type FileListWrapperWithDataProps = {
    */
   heading?: React.ReactNode;
   canManageOrg?: boolean;
+  /**
+   * The folders directly inside the one being shown, rendered ahead of the
+   * files in both views.
+   *
+   * The folder filter is an exact match, not a subtree: standing in
+   * "Contracts" you see the files filed in Contracts and nothing from
+   * "Contracts / 2026". Without these, the only way into a subfolder is the
+   * rail — and the rail is the one thing on this page that does not say what
+   * it is nested inside.
+   */
+  subfolders?: DocumentFolderItem[];
+  onNavigateFolder?: (folderId: string) => void;
 };
 
 export const FileListWrapperWithData = ({
@@ -112,6 +125,8 @@ export const FileListWrapperWithData = ({
   topBarLeft,
   heading,
   canManageOrg,
+  subfolders,
+  onNavigateFolder,
 }: FileListWrapperWithDataProps) => {
   const { successToast, errorToast, warningToast } = statusToast();
   const tSuccess = useTranslations('success-toast');
@@ -815,7 +830,8 @@ export const FileListWrapperWithData = ({
                 showModal={showModal}
                 removeFile={removeFile}
                 files={filteredFiles}
-                subfolders={[]}
+                subfolders={subfolders ?? []}
+                onNavigateFolder={onNavigateFolder}
                 toggleModal={toggleModal}
                 handleDelete={handleDelete}
                 isSelected={bulk.isSelected}
@@ -860,6 +876,8 @@ export const FileListWrapperWithData = ({
           <DocumentsTableWithFilters
             result={result}
             files={filteredFiles}
+            subfolders={subfolders}
+            onNavigateFolder={onNavigateFolder}
             sort={sort}
             dir={dir}
             selectedFileTypes={selectedFileTypes}

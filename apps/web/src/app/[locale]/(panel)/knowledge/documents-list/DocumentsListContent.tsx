@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { FileListWrapperWithData } from '@/app/components/ManageKnowledge/UserFiles/UserFilesWrapper';
 import {
@@ -147,6 +147,28 @@ export function DocumentsListContent({
 
   const scopeTotals = scopeCounts[viewMode] ?? { files: 0, pages: 0 };
 
+  /**
+   * The folders directly inside the one being shown — and deliberately none
+   * at the root.
+   *
+   * The folder filter is an exact match (`user-files-where.ts`), not a
+   * subtree, so standing in "Contracts" you see what is filed in Contracts
+   * and nothing from "Contracts / 2026". Those files had no route from the
+   * content area at all; the rail was the only way down.
+   *
+   * At the root there is no folder condition, so every file is already in the
+   * list wherever it is filed. Folder tiles there would show the same
+   * documents a second time — which is why a scope and a folder are two ways
+   * of narrowing one set here rather than a tree you stand inside.
+   */
+  const subfolders = useMemo(
+    () =>
+      currentFolderId
+        ? folders.filter((folder) => folder.parentId === currentFolderId)
+        : [],
+    [folders, currentFolderId],
+  );
+
   return (
     // flex-1 + min-h-0 claims the panel's full height from the shell, which
     // stretches its children. Without min-h-0 the folder column's
@@ -188,11 +210,29 @@ export function DocumentsListContent({
           selectedStatuses={selectedStatuses}
           selectedPolicies={selectedPolicies}
           canManageOrg={canManageOrg}
+          subfolders={subfolders}
+          onNavigateFolder={handleBreadcrumbNavigate}
           heading={
             <div className="min-w-0">
-              <h1 className="truncate font-display text-xl font-semibold text-foreground">
-                {tFolders(SCOPE_LABEL_KEY[viewMode])}
-              </h1>
+              {/*
+                Inside a folder the trail *is* the heading — "All files /
+                Contracts / 2026", with the folder you are in as the `<h1>`.
+                It used to sit in a band of its own above the toolbar, under
+                a heading that named the scope instead, which is two rows
+                answering "where am I" and only one of them answering it.
+              */}
+              {currentFolderId ? (
+                <Breadcrumbs
+                  folderId={currentFolderId}
+                  onNavigate={handleBreadcrumbNavigate}
+                  variant="title"
+                  rootLabel={tFolders(SCOPE_LABEL_KEY[viewMode])}
+                />
+              ) : (
+                <h1 className="truncate font-display text-xl font-semibold text-foreground">
+                  {tFolders(SCOPE_LABEL_KEY[viewMode])}
+                </h1>
+              )}
               {/*
                 The scope's own totals, not the table's. The table already says
                 how many rows a filter left ("1-5 of 240" under it), so
@@ -218,19 +258,10 @@ export function DocumentsListContent({
             </div>
           }
           /*
-            Only inside a folder. `Breadcrumbs` renders nothing at the root on
-            its own, but the wrapper reserves a margin for whatever it is
-            handed — an empty element there leaves eight pixels of nothing
-            above the filter row.
+            No `topBarLeft` on this route. The trail moved up into the heading
+            above, which is the whole point: one band saying where you are
+            rather than two. The prop stays on the wrapper for other callers.
           */
-          topBarLeft={
-            currentFolderId ? (
-              <Breadcrumbs
-                folderId={currentFolderId}
-                onNavigate={handleBreadcrumbNavigate}
-              />
-            ) : undefined
-          }
         />
       </div>
     </div>
