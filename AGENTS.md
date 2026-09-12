@@ -52,7 +52,7 @@ Before starting a nontrivial task, match it against this table and read the link
 | Retrieval quality, hybrid search, reranking | [`docs/rag-pipeline.md`](docs/rag-pipeline.md), ADRs [11](docs/adrs/11-qdrant-vector-store.md)/[12](docs/adrs/12-cohere-rerank-post-retrieval.md)/[14](docs/adrs/14-hybrid-search-dense-sparse.md), this file's "RAG Pipeline" section |
 | Multi-query expansion / rephrasing | ADR [15](docs/adrs/15-multi-query-expansion.md) |
 | Document summaries at ingest | ADR [16](docs/adrs/16-document-summaries-at-ingest.md) |
-| Chunking strategy, PDF heading detection, section-aware context | ADRs [17](docs/adrs/17-type-specific-chunking.md)/[18](docs/adrs/18-pdf-heading-detection.md)/[19](docs/adrs/19-section-aware-context-rendering.md) |
+| Chunking strategy, PDF heading detection, section-aware context, table chunks | ADRs [17](docs/adrs/17-type-specific-chunking.md)/[18](docs/adrs/18-pdf-heading-detection.md)/[19](docs/adrs/19-section-aware-context-rendering.md)/[43](docs/adrs/43-table-chunks-come-from-the-parser-not-the-prompt.md) |
 | Measuring/evaluating RAG quality changes | ADR [20](docs/adrs/20-pause-and-measure-rag-quality.md), the [2026-09-12 measurement](docs/rag-measurement-2026-09-12.md), [`evals/`](apps/web/evals/README.md) — three harnesses, one tests retrieval |
 | **Data & access control** | |
 | Vector store, collection schema, why only Qdrant works | [`docs/vector-store.md`](docs/vector-store.md), ADRs [11](docs/adrs/11-qdrant-vector-store.md)/[14](docs/adrs/14-hybrid-search-dense-sparse.md)/[31](docs/adrs/31-only-qdrant-is-a-supported-vector-store.md) |
@@ -277,7 +277,7 @@ and actions. See [`docs/architecture.md`](docs/architecture.md).
 
 Uses `@prisma/adapter-pg`. Config: `prisma.config.ts` (excluded from tsconfig). Schema: `prisma/schema.prisma`. Client singleton: `src/libs/db/index.ts` (aliased `@ragenai/prisma-client`). Generated output: `src/generated/prisma/` (gitignored, `npm run generate:types`).
 
-`prisma/schema.prisma` is the **single shared schema for the whole monorepo** — `apps/api` (NestJS) generates its own client from the same file via a second `generator apiClient` block (output `apps/api/src/generated/prisma`). One `prisma generate` at the repo root regenerates both. Do not create a separate schema for another app — add another `generator` block here instead. See `docs/adrs/21-monorepo-and-api-decoupling.md`.
+`prisma/schema.prisma` is the **single shared schema for the whole monorepo**: each app gets its own client from a `generator` block in that one file, and one `prisma generate` at the root regenerates all of them. Do not create a separate schema for another app — add another `generator` block here instead. Why, and which block belongs to which app: [ADR-21](docs/adrs/21-monorepo-and-api-decoupling.md).
 
 Import `PrismaClient`, enums, and types from `@/generated/prisma/client`. Webpack auto-redirects this to `@/generated/prisma/browser` in client components.
 
@@ -292,11 +292,7 @@ in `@ragenai/platform-contracts` (ADR-33). Full detail:
 
 ### Libraries (`src/libs/`)
 
-Sixteen modules — `llm/`, `chains/`, `vector-store/`, `reranker/`,
-`document-loaders/`, `monitoring/`, `temporal/`, `mcp/` and the
-rest. What each one is for, and the two that carry a warning
-(`vector-store` has backends that are not wired at the write end,
-`ragen-vault` must not become a fourth copy of the client):
+Sixteen modules. What each is for, and the two that carry a warning:
 [`docs/architecture.md`](docs/architecture.md).
 
 ### Knowledge Base

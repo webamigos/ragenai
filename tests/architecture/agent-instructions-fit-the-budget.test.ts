@@ -38,6 +38,11 @@ const INSTRUCTION_FILES = [
   'AGENTS.md',
   'apps/api/AGENTS.md',
   'apps/worker/AGENTS.md',
+  // Written and re-added by `next dev` on Next 16, not by hand — nine lines
+  // warning that this Next differs from an agent's training data. Covered here
+  // because this list is exhaustive by design, not because it is at any risk
+  // of growing.
+  'apps/web/AGENTS.md',
 ];
 
 function sizeOf(relative: string): number {

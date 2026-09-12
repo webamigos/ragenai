@@ -339,25 +339,25 @@ landable without it, because ADR-20 forbids it.
 
 ### Phase A — a measurement that can see the change
 
-- [ ] **A1.** Extend the parser probe to Docling's **markdown and spreadsheet
+- [x] **A1.** Extend the parser probe to Docling's **markdown and spreadsheet
       backends**. The `column_header` flag was verified on the HTML backend
       only, and the corpus below is Markdown — a different table parser. If
       markdown sources do not set the flag, every table falls into the "no
       `column_header`" branch, the feature no-ops, and Phase C reads flat for a
       reason the spec has already pre-labelled acceptable. Build the corpus in a
       format the probe covers.
-- [ ] **A2.** A new sibling corpus under `evals/rag-benchmark/corpora/`:
+- [x] **A2.** A new sibling corpus under `evals/rag-benchmark/corpora/`:
       documents whose tables exceed the chunk budget, in both languages, every
       figure invented per the harness's rule, plus **one spreadsheet**.
       Questions target a value in a row far from its header, with an
       `expectNone` drawn from a neighbouring column so a right-shaped answer
       from the wrong column fails.
-- [ ] **A3.** Baseline run against current `main`, flag absent, committed to
+- [x] **A3.** Baseline run against current `main`, flag absent, committed to
       `results/`. **This is the number the spec is judged against.**
 
 ### Phase B — table chunks, behind a flag
 
-- [ ] **B1.** Widen `convertWithDocling`'s return type to carry parsed tables
+- [x] **B1.** Widen `convertWithDocling`'s return type to carry parsed tables
       and element labels, and carry them the rest of the way: `loadDocling`
       spreads them onto `doc.metadata` as `doclingTables` and
       `doclingElementLabels` beside the existing `doclingPageAnchors`, and the
@@ -366,15 +366,15 @@ landable without it, because ADR-20 forbids it.
       transport is testable on its own — a boundary test asserts a table
       survives the trip from `json_content` to `splitText` without disturbing
       `markdown`, `pageCount` or `pageAnchors`.
-- [ ] **B2.** Extract `packRows` from the CSV splitter and rewrite
+- [x] **B2.** Extract `packRows` from the CSV splitter and rewrite
       `splitCsvDocuments` onto it. Pure refactor, existing tests unchanged.
-- [ ] **B3.** Excision **and** table-chunk emission, together, behind
+- [x] **B3.** Excision **and** table-chunk emission, together, behind
       `FEATURE_FLAG_TABLE_CHUNKS`, with per-candidate validation, the
       all-or-nothing refusal and its counter.
       These are one step, not two: excision without emission removes the figures
       from the index entirely, so a flag-on deployment between them would lose
       data. Includes `source_page`, `section_path` and `chunk_type`.
-- [ ] **B4.** Open **ADR-43**, recording that Phase 4c was delivered on the
+- [x] **B4.** Open **ADR-43**, recording that Phase 4c was delivered on the
       Docling path rather than ADR-20's Path B, and why.
 
 ### Phase C — decide with the number
