@@ -328,3 +328,47 @@ describe('UserFilesTable — the fixed grid', () => {
     expect(screen.getByText('brief.pdf')).toBeInTheDocument();
   });
 });
+
+/**
+ * A row is a drag source for a move onto a folder in the rail. A shortcut,
+ * never the only route — "Move" stays in the row's menu, because a drag is
+ * unavailable to a keyboard and awkward on a touch screen.
+ */
+describe('UserFilesTable — dragging a row onto a folder', () => {
+  function fakeDataTransfer() {
+    const store = new Map<string, string>();
+    return {
+      effectAllowed: '',
+      get types() {
+        return Array.from(store.keys());
+      },
+      setData: (type: string, value: string) => store.set(type, value),
+      getData: (type: string) => store.get(type) ?? '',
+    };
+  }
+
+  it('is not draggable when nothing is listening for a move', () => {
+    const { container } = renderTable();
+    const row = container.querySelector('tbody tr') as HTMLElement;
+
+    expect(row).not.toHaveAttribute('draggable', 'true');
+  });
+
+  it('puts the ids the owner hands back onto the drag, not the row it started on', () => {
+    // The row does not decide what the drag carries: dragging a row that is
+    // part of a selection moves the whole selection, and only the component
+    // holding the selection knows what that is.
+    const onDragFiles = vi.fn(() => ['file-1', 'file-2']);
+    const { container } = renderTable({ onDragFiles });
+    const row = container.querySelector('tbody tr') as HTMLElement;
+    const dataTransfer = fakeDataTransfer();
+
+    expect(row).toHaveAttribute('draggable', 'true');
+    fireEvent.dragStart(row, { dataTransfer });
+
+    expect(onDragFiles).toHaveBeenCalledTimes(1);
+    expect(dataTransfer.getData('application/x-ragen-file')).toBe(
+      '["file-1","file-2"]',
+    );
+  });
+});

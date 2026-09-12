@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "käyttäjätunnus puuttuu",
     "error-during-deleting-file": "Virhe asiakirjan poistamisessa",
+    "error-during-moving-file": "Virhe asiakirjan siirtämisessä",
     "fetching-docs-error": "Virhe asiakirjojen hakemisessa",
     "no-files": "Ei tiedostoja"
   },

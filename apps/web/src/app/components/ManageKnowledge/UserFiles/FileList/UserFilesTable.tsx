@@ -31,6 +31,7 @@ import { RagScoreBadge } from './RagScoreBadge';
 import { PiiPolicySelect, type PiiPolicyValue } from '../../PiiPolicySelect';
 import { Tooltip } from '@ragenai/common-ui/Tooltip';
 import { EmptyState } from '@ragenai/common-ui/EmptyState';
+import { setDraggedFileIds } from '@/features/documents/constants/file-drag';
 import { scoreDocumentAction } from '@/app/[locale]/(panel)/knowledge/optimize-document/actions';
 import { updateFilePiiPolicy, reembedFile } from '@/app/actions';
 import { statusToast } from '@/app/lib/utils/toast';
@@ -144,6 +145,8 @@ type Props = {
   isFilteredEmpty?: boolean;
   onResetFilters?: () => void;
   canManageOrg?: boolean;
+  /** See `FileRowProps.onDragFiles`. */
+  onDragFiles?: (fileId: string) => string[];
 } & SelectionProps;
 
 export type UserFileTypeSafe = UserFileType & {
@@ -165,6 +168,13 @@ type FileRowProps = {
   onToggleFile?: (id: string) => void;
   onPreviewFile?: (file: UserFileTypeSafe) => void;
   canManageOrg?: boolean;
+  /**
+   * Starts a move: hands back the ids this drag should carry. The row does
+   * not decide that on its own — dragging a row that is part of a selection
+   * moves the whole selection, and only the component holding the selection
+   * knows what that is.
+   */
+  onDragFiles?: (fileId: string) => string[];
 };
 
 export type ModalStateProps = {
@@ -215,6 +225,7 @@ const FileRow = ({
   onToggleFile,
   onPreviewFile,
   canManageOrg,
+  onDragFiles,
 }: FileRowProps) => {
   const [isLoading] = useState(false);
   const [isScoringLoading, setIsScoringLoading] = useState(false);
@@ -297,10 +308,24 @@ const FileRow = ({
         fileName={file.fileName}
         isLoading={deleteLoading}
       />
+      {/*
+        Draggable onto a folder in the rail, which files it there.
+
+        A shortcut, never the only route: "Move" stays in the row's menu and
+        on the selection bar, because a drag is unavailable to a keyboard and
+        awkward on a touch screen.
+      */}
       <tr
         className={`group text-sm cursor-pointer hover:bg-muted dark:hover:bg-muted${isSelected ? ' bg-accent/20' : ''}`}
         data-testid={`file-row-${file.id}`}
         onClick={() => onPreviewFile?.(file)}
+        draggable={onDragFiles !== undefined}
+        onDragStart={(event) => {
+          if (!onDragFiles) {
+            return;
+          }
+          setDraggedFileIds(event.dataTransfer, onDragFiles(file.id));
+        }}
       >
         {onToggleFile && (
           <Td className="pr-0">
@@ -502,6 +527,7 @@ export const UserFilesTable = ({
   isFilteredEmpty = false,
   onResetFilters,
   canManageOrg,
+  onDragFiles,
 }: Props & ComponentProps<'table'>) => {
   const t = useTranslations('files-table');
   const tBulkBar = useTranslations('bulk-action-bar');
@@ -779,6 +805,7 @@ export const UserFilesTable = ({
               onToggleFile={onToggleFile}
               onPreviewFile={onPreviewFile}
               canManageOrg={canManageOrg}
+              onDragFiles={onDragFiles}
             />
           ))}
         </tbody>

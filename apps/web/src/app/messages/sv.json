@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "användar-id saknas",
     "error-during-deleting-file": "Fel vid borttagning av dokumentet",
+    "error-during-moving-file": "Fel vid flytt av dokumentet",
     "fetching-docs-error": "Fel vid hämtning av dokument",
     "no-files": "Inga filer"
   },

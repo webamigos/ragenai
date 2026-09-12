@@ -38,6 +38,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { DocumentFolderItem } from '@/features/documents/contracts/document.types';
 import { buildFolderTree } from '@/features/documents/utils/folder-tree';
+import {
+  isFileDrag,
+  readDraggedFileIds,
+} from '@/features/documents/constants/file-drag';
 
 export type ViewMode = 'all' | 'my-files' | 'shared-with-me';
 
@@ -68,6 +72,14 @@ type Props = {
   usage?: UsageData | null;
   scopeCounts?: ScopeCounts;
   onFolderMutated?: () => void;
+  /**
+   * Files dropped onto a folder row, by their ids. `null` is the root — the
+   * way to take a document *out* of a folder without opening a dialog.
+   *
+   * The rail is where a move lands because it is the only place on the page
+   * that shows every folder at once, including ones you are not standing in.
+   */
+  onDropFiles?: (folderId: string | null, fileIds: string[]) => void;
 };
 
 /**
@@ -88,6 +100,12 @@ const navItemBase =
 const navItemActive =
   'bg-accent text-accent-foreground font-medium shadow-[inset_2px_0_0_var(--marker)]';
 const navItemInactive = 'text-foreground hover:bg-muted';
+/*
+  The row a move would land on. Tinted rather than outlined: an outline on a
+  30px row inside a 216px rail reads as a focus ring, and this is a hover
+  state, not a focus one.
+*/
+const navItemDropTarget = 'bg-brand-50 dark:bg-brand-900/30';
 
 /** ALL CAPS is allowed here and nowhere else — panel rule 18. */
 function Eyebrow({ children }: { children: React.ReactNode }) {
@@ -206,6 +224,7 @@ export function FoldersList({
   usage,
   scopeCounts,
   onFolderMutated,
+  onDropFiles,
 }: Props) {
   const t = useTranslations('folders');
   const { successToast, errorToast } = statusToast();
@@ -350,6 +369,47 @@ export function FoldersList({
     [findFolderInTree, folderTree],
   );
 
+  /*
+    Which row a move would land on, `null` meaning the root scope row.
+    `undefined` is "no drag over the rail at all" — the root has to be a
+    droppable value of its own, so it cannot double as "nothing".
+
+    `dragEnter`/`dragLeave` on a row that contains an icon and two spans fires
+    once per descendant, so the state is set from `dragOver` (which repeats
+    while the pointer is inside) and cleared when the drag leaves the rail as
+    a whole.
+  */
+  const [dropTargetId, setDropTargetId] = useState<string | null | undefined>(
+    undefined,
+  );
+
+  const dropHandlers = (folderId: string | null) =>
+    onDropFiles
+      ? {
+          onDragOver: (event: React.DragEvent) => {
+            if (!isFileDrag(event.dataTransfer)) {
+              return;
+            }
+            // Without `preventDefault` the browser refuses the drop entirely.
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            setDropTargetId(folderId);
+          },
+          onDrop: (event: React.DragEvent) => {
+            if (!isFileDrag(event.dataTransfer)) {
+              return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            setDropTargetId(undefined);
+            const fileIds = readDraggedFileIds(event.dataTransfer);
+            if (fileIds.length > 0) {
+              onDropFiles(folderId, fileIds);
+            }
+          },
+        }
+      : {};
+
   const renderFolder = (folder: DocumentFolderItem, depth: number = 0) => {
     const hasChildren = folder.children && folder.children.length > 0;
     const isExpanded = expandedFolders.has(folder.id);
@@ -361,9 +421,10 @@ export function FoldersList({
         <div className="group relative">
           <button
             type="button"
-            className={`${navItemBase} ${isSelected ? navItemActive : navItemInactive}`}
+            className={`${navItemBase} ${isSelected ? navItemActive : navItemInactive} ${dropTargetId === folder.id ? navItemDropTarget : ''}`}
             style={{ paddingLeft: `${12 + depth * 16}px` }}
             onClick={() => onSelectFolder?.(folder.id, 'all')}
+            {...dropHandlers(folder.id)}
           >
             {hasChildren ? (
               <span
@@ -463,7 +524,22 @@ export function FoldersList({
 
   return (
     <>
-      <div className="flex h-full flex-col">
+      {/*
+        The highlight is cleared here rather than per row: `dragleave` fires
+        when the pointer crosses into a *child* element too, so a per-row
+        handler flickers the tint off every time the pointer passes over the
+        folder icon inside the row it is standing on. At the rail's edge the
+        event means what it says.
+      */}
+      <div
+        className="flex h-full flex-col"
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+            setDropTargetId(undefined);
+          }
+        }}
+        onDragEnd={() => setDropTargetId(undefined)}
+      >
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
           {/*
             Scope and folders are two groups under their own eyebrows, not one
@@ -475,6 +551,11 @@ export function FoldersList({
           <div>
             <Eyebrow>{t('scope')}</Eyebrow>
             <div className="space-y-0.5">
+              {/*
+                Also the way to take a document *out* of a folder: dropping it
+                on "All files" clears its folder. There is no other one-gesture
+                route back to unfiled — the row menu's Move opens a dialog.
+              */}
               <button
                 onClick={() => onSelectFolder?.(null, 'all')}
                 aria-current={
@@ -487,7 +568,9 @@ export function FoldersList({
                   selectedFolderId === null && selectedViewMode === 'all'
                     ? navItemActive
                     : navItemInactive,
+                  dropTargetId === null && navItemDropTarget,
                 )}
+                {...dropHandlers(null)}
               >
                 <DocumentTextIcon className="size-4 shrink-0" />
                 <span className="truncate">{t('all-files')}</span>

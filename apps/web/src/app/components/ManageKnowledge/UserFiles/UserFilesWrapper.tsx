@@ -76,6 +76,7 @@ import type {
   PiiPolicy,
 } from '@/generated/prisma/browser';
 import { clearFileFilterParams } from '@/features/documents/constants/file-filters';
+import { isFileDrag } from '@/features/documents/constants/file-drag';
 import { useOrgFeature } from '@/app/hooks/useOrgFeatures';
 
 const BULK_PROGRESS_THRESHOLD = 10;
@@ -282,6 +283,21 @@ export const FileListWrapperWithData = ({
   const fileIds = useMemo(
     () => Array.from(bulk.selectedIds),
     [bulk.selectedIds],
+  );
+
+  /**
+   * What a drag started on one row should carry.
+   *
+   * Dragging a row that is part of the current selection moves the whole
+   * selection; dragging one outside it moves just that row and leaves the
+   * selection alone. That is what every file manager does, and the
+   * alternative — always moving one file — makes the selection checkboxes
+   * look like they do nothing.
+   */
+  const handleDragFiles = useCallback(
+    (fileId: string) =>
+      bulk.isSelected(fileId) && fileIds.length > 0 ? fileIds : [fileId],
+    [bulk, fileIds],
   );
 
   const handleBulkDelete = async () => {
@@ -565,6 +581,9 @@ export const FileListWrapperWithData = ({
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
+      if (isFileDrag(e.dataTransfer)) {
+        return;
+      }
       e.preventDefault();
       setIsDragOver(false);
       if (e.dataTransfer.files.length > 0) {
@@ -583,7 +602,16 @@ export const FileListWrapperWithData = ({
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }, [router, pathname]);
 
+  /*
+    A row being dragged onto a folder passes over this zone on its way there.
+    Without the check it lights up as "drop files to upload" the whole time,
+    which promises the wrong operation — and calling `preventDefault` on it
+    would make this zone a drop target for a move it cannot perform.
+  */
   const handleDragOver = (e: React.DragEvent) => {
+    if (isFileDrag(e.dataTransfer)) {
+      return;
+    }
     e.preventDefault();
     setIsDragOver(true);
   };
@@ -832,6 +860,7 @@ export const FileListWrapperWithData = ({
                 files={filteredFiles}
                 subfolders={subfolders ?? []}
                 onNavigateFolder={onNavigateFolder}
+                onDragFiles={handleDragFiles}
                 toggleModal={toggleModal}
                 handleDelete={handleDelete}
                 isSelected={bulk.isSelected}
@@ -878,6 +907,7 @@ export const FileListWrapperWithData = ({
             files={filteredFiles}
             subfolders={subfolders}
             onNavigateFolder={onNavigateFolder}
+            onDragFiles={handleDragFiles}
             sort={sort}
             dir={dir}
             selectedFileTypes={selectedFileTypes}

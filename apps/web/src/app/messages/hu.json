@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "hiányzó felhasználói azonosító",
     "error-during-deleting-file": "Hiba történt a dokumentum törlése közben",
+    "error-during-moving-file": "Hiba történt a dokumentum áthelyezése közben",
     "fetching-docs-error": "Hiba történt a dokumentumok betöltése közben",
     "no-files": "Nincs fájl"
   },

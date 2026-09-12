@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "falta el id de usuario",
     "error-during-deleting-file": "Error al eliminar el documento",
+    "error-during-moving-file": "Error al mover el documento",
     "fetching-docs-error": "Error al obtener los documentos",
     "no-files": "Sin archivos"
   },

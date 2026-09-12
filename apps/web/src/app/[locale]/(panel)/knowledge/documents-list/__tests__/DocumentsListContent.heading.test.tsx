@@ -40,6 +40,22 @@ vi.mock('@/app/hooks/use-auth', () => ({
 
 vi.mock('@/app/actions/folders', () => ({ getFolders: vi.fn(async () => []) }));
 
+/*
+  The drop-a-file-on-a-folder handler brings the bulk move action and the
+  toasts in with it, and the toast module reaches the server/client logger
+  split that does not resolve under vitest.
+*/
+vi.mock('@/app/actions/bulk-documents', () => ({
+  bulkMoveFilesToFolderAction: vi.fn(async () => ({
+    succeeded: [],
+    failed: [],
+  })),
+}));
+
+vi.mock('@/app/lib/utils/toast', () => ({
+  statusToast: () => ({ successToast: vi.fn(), errorToast: vi.fn() }),
+}));
+
 vi.mock('../../actions', () => ({
   getKnowledgeBaseUsage: vi.fn(async () => null),
 }));

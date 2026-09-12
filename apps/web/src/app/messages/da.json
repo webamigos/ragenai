@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "manglende bruger-id",
     "error-during-deleting-file": "Fejl under sletning af dokumentet",
+    "error-during-moving-file": "Fejl under flytning af dokumentet",
     "fetching-docs-error": "Fejl under hentning af dokumenter",
     "no-files": "Ingen filer"
   },

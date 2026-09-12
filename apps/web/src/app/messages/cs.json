@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "chybí ID uživatele",
     "error-during-deleting-file": "Chyba při mazání dokumentu",
+    "error-during-moving-file": "Chyba při přesouvání dokumentu",
     "fetching-docs-error": "Chyba při načítání dokumentů",
     "no-files": "Žádné soubory"
   },

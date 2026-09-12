@@ -28,6 +28,8 @@ type GridViewProps = {
   files: UserFileType[];
   subfolders?: DocumentFolderItem[];
   onNavigateFolder?: (folderId: string) => void;
+  /** See `FileRowProps.onDragFiles` in `UserFilesTable`. */
+  onDragFiles?: (fileId: string) => string[];
   isLoading: boolean;
   isError: boolean;
   showModal: ModalStateProps;
@@ -60,6 +62,7 @@ export const GridView = ({
   files,
   subfolders = [],
   onNavigateFolder,
+  onDragFiles,
   isLoading,
   deleteLoading,
   isError,
@@ -218,6 +221,7 @@ export const GridView = ({
             onShare={onShare}
             onScore={onScore}
             canManageOrg={canManageOrg}
+            onDragFiles={onDragFiles}
           />
         ))}
         {showModal.fileId && (

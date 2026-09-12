@@ -13,6 +13,8 @@ import { useUserFilesContext } from '@/app/hooks/useUserFilesContext';
 import { useOrganization } from '@/app/hooks/use-auth';
 import { getFolders } from '@/app/actions/folders';
 import { getKnowledgeBaseUsage, type KnowledgeBaseUsage } from '../actions';
+import { bulkMoveFilesToFolderAction } from '@/app/actions/bulk-documents';
+import { statusToast } from '@/app/lib/utils/toast';
 import { useRouter, usePathname } from '@/i18n/routing';
 import type {
   PaginatedUserFilesResult,
@@ -61,6 +63,9 @@ export function DocumentsListContent({
     useUserFilesContext();
   const { canManageOrg } = useOrganization();
   const tFolders = useTranslations('folders');
+  const tBulk = useTranslations('bulk-notifications');
+  const tError = useTranslations('error-toast');
+  const { successToast, errorToast } = statusToast();
 
   useEffect(() => {
     const incoming = folderId ?? null;
@@ -161,6 +166,47 @@ export function DocumentsListContent({
    * documents a second time — which is why a scope and a folder are two ways
    * of narrowing one set here rather than a tree you stand inside.
    */
+  /**
+   * A file dropped on a folder row in the rail.
+   *
+   * Goes through the bulk action for a single file as well as for many: it is
+   * the one path that already checks, per file, whether this member may move
+   * it — an admin may move anyone's, everyone else only their own — and
+   * reports which ones it could not. A separate single-file path here would
+   * be a second place for that rule to drift.
+   */
+  const handleDropFiles = useCallback(
+    async (targetFolderId: string | null, fileIds: string[]) => {
+      try {
+        const result = await bulkMoveFilesToFolderAction(
+          fileIds,
+          targetFolderId,
+        );
+        const succeeded = result.succeeded.length;
+        if (succeeded === 0) {
+          errorToast({ message: tError('error-during-moving-file') });
+          return;
+        }
+        successToast({
+          message:
+            result.failed.length > 0
+              ? tBulk('moved-partial', {
+                  succeeded,
+                  total: fileIds.length,
+                })
+              : tBulk('moved-all', { count: succeeded }),
+        });
+        // The moved files leave this list, and the wrapper's `retainOnly`
+        // effect prunes them from the selection when the new page arrives.
+        loadFolders();
+        router.refresh();
+      } catch {
+        errorToast({ message: tError('error-during-moving-file') });
+      }
+    },
+    [loadFolders, router, successToast, errorToast, tBulk, tError],
+  );
+
   const subfolders = useMemo(
     () =>
       currentFolderId
@@ -197,6 +243,7 @@ export function DocumentsListContent({
           usage={usage}
           scopeCounts={scopeCounts}
           onFolderMutated={handleFolderMutated}
+          onDropFiles={handleDropFiles}
         />
       </div>
 

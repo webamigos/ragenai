@@ -114,6 +114,7 @@ type CommonProps = {
 type DocumentsTableWithFiltersProps = CommonProps & {
   subfolders?: DocumentFolderItem[];
   onNavigateFolder?: (folderId: string) => void;
+  onDragFiles?: (fileId: string) => string[];
 };
 
 type DocumentsGridWithFiltersProps = Pick<
@@ -388,6 +389,7 @@ export function DocumentsTableWithFilters({
   selectedPolicies,
   subfolders,
   onNavigateFolder,
+  onDragFiles,
   showModal,
   deleteLoading,
   toggleModal,
@@ -523,6 +525,7 @@ export function DocumentsTableWithFilters({
         isFilteredEmpty={isFilteredEmptyVal}
         onResetFilters={handleResetFilters}
         canManageOrg={canManageOrg}
+        onDragFiles={onDragFiles}
       />
     </FiltersBar>
   );
