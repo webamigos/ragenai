@@ -1279,7 +1279,6 @@
     "sort-label": "Seřadit",
     "sort-dir-asc": "Vzestupně",
     "sort-dir-desc": "Sestupně",
-    "reembed": "Použít zásadu",
     "filter-clear": "Vymazat filtr {filter}",
     "filter-pii-policy": "Zásada",
     "filter-pii-policy-all": "Vše"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Citlivé údaje",
     "badge-strict": "Všechny osobní údaje",
     "pii-policy-label": "Zásada maskování osobních údajů",
-    "inline-edit-tooltip": "Zásada byla uložena. Klikněte na „Použít zásadu“ pro opětovné zpracování dokumentu s novým nastavením maskování.",
     "reembed-success": "Dokument bude znovu zpracován s novou zásadou",
     "reembed-error": "Zásadu se nepodařilo použít",
     "info-page-title": "Zásady osobních údajů",

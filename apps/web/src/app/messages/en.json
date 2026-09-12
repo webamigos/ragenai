@@ -1279,7 +1279,6 @@
     "sort-label": "Sort",
     "sort-dir-asc": "Ascending",
     "sort-dir-desc": "Descending",
-    "reembed": "Apply policy",
     "filter-clear": "Clear {filter} filter",
     "filter-pii-policy": "Policy",
     "filter-pii-policy-all": "All"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Sensitive data",
     "badge-strict": "All personal data",
     "pii-policy-label": "PII Masking Policy",
-    "inline-edit-tooltip": "Policy saved. Click \"Apply policy\" to re-process the document with the new masking settings.",
     "reembed-success": "Document will be re-processed with the new policy",
     "reembed-error": "Failed to apply policy",
     "info-page-title": "PII Policy",

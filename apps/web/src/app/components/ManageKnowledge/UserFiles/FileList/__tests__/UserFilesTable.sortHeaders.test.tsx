@@ -84,7 +84,6 @@ const messages = {
     delete: 'Delete',
     move: 'Move',
     share: 'Share',
-    reembed: 'Re-embed',
   },
   folders: {
     title: 'Folders',
@@ -120,8 +119,6 @@ const messages = {
     'badge-none': 'No masking',
     'badge-toxic-only': 'Toxic only',
     'badge-strict': 'Strict',
-    'inline-edit-tooltip':
-      'Changing the policy does not re-embed the document.',
   },
 };
 

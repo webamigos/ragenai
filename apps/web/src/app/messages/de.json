@@ -1279,7 +1279,6 @@
     "sort-label": "Sortieren",
     "sort-dir-asc": "Aufsteigend",
     "sort-dir-desc": "Absteigend",
-    "reembed": "Richtlinie anwenden",
     "filter-clear": "Filter {filter} zurücksetzen",
     "filter-pii-policy": "Richtlinie",
     "filter-pii-policy-all": "Alle"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Sensible Daten",
     "badge-strict": "Alle personenbezogenen Daten",
     "pii-policy-label": "Richtlinie zur Maskierung personenbezogener Daten",
-    "inline-edit-tooltip": "Richtlinie gespeichert. Klicke auf \"Richtlinie anwenden\", um das Dokument mit den neuen Maskierungseinstellungen neu zu verarbeiten.",
     "reembed-success": "Das Dokument wird mit der neuen Richtlinie neu verarbeitet",
     "reembed-error": "Fehler beim Anwenden der Richtlinie",
     "info-page-title": "Richtlinie für personenbezogene Daten",

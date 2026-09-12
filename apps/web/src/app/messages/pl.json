@@ -1279,7 +1279,6 @@
     "sort-label": "Sortuj",
     "sort-dir-asc": "Rosnąco",
     "sort-dir-desc": "Malejąco",
-    "reembed": "Zastosuj politykę",
     "filter-clear": "Wyczyść filtr {filter}",
     "filter-pii-policy": "Polityka",
     "filter-pii-policy-all": "Wszystkie"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Dane wrażliwe",
     "badge-strict": "Wszystkie dane os.",
     "pii-policy-label": "Polityka maskowania PII",
-    "inline-edit-tooltip": "Polityka zapisana. Kliknij \"Zastosuj politykę\", aby ponownie przetworzyć dokument z nowymi ustawieniami maskowania.",
     "reembed-success": "Dokument zostanie ponownie przetworzony z nową polityką",
     "reembed-error": "Nie udało się zastosować polityki",
     "info-page-title": "Polityka PII",

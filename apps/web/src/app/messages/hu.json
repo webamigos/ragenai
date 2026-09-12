@@ -1279,7 +1279,6 @@
     "sort-label": "Rendezés",
     "sort-dir-asc": "Növekvő",
     "sort-dir-desc": "Csökkenő",
-    "reembed": "Szabályzat alkalmazása",
     "filter-clear": "{filter} szűrő törlése",
     "filter-pii-policy": "Szabály",
     "filter-pii-policy-all": "Mind"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Érzékeny adatok",
     "badge-strict": "Minden személyes adat",
     "pii-policy-label": "Személyes adatok maszkolási szabályzata",
-    "inline-edit-tooltip": "A szabályzat mentve. Kattints az \"Szabályzat alkalmazása\" gombra a dokumentum újrafeldolgozásához az új maszkolási beállításokkal.",
     "reembed-success": "A dokumentumot újrafeldolgozzuk az új szabályzattal",
     "reembed-error": "A szabályzat alkalmazása sikertelen",
     "info-page-title": "Személyes adatok kezelési szabályzata",

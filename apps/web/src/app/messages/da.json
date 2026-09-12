@@ -1279,7 +1279,6 @@
     "sort-label": "Sorter",
     "sort-dir-asc": "Stigende",
     "sort-dir-desc": "Faldende",
-    "reembed": "Anvend politik",
     "filter-clear": "Ryd filteret {filter}",
     "filter-pii-policy": "Politik",
     "filter-pii-policy-all": "Alle"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Følsomme data",
     "badge-strict": "Alle personoplysninger",
     "pii-policy-label": "Politik for maskering af personoplysninger",
-    "inline-edit-tooltip": "Politikken er gemt. Klik på \"Anvend politik\" for at genbehandle dokumentet med de nye maskeringsindstillinger.",
     "reembed-success": "Dokumentet vil blive genbehandlet med den nye politik",
     "reembed-error": "Kunne ikke anvende politikken",
     "info-page-title": "Politik for personoplysninger",

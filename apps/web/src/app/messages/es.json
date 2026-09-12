@@ -1279,7 +1279,6 @@
     "sort-label": "Ordenar",
     "sort-dir-asc": "Ascendente",
     "sort-dir-desc": "Descendente",
-    "reembed": "Aplicar política",
     "filter-clear": "Borrar el filtro {filter}",
     "filter-pii-policy": "Política",
     "filter-pii-policy-all": "Todos"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Datos sensibles",
     "badge-strict": "Todos los datos personales",
     "pii-policy-label": "Política de enmascaramiento de datos personales",
-    "inline-edit-tooltip": "Política guardada. Haz clic en \"Aplicar política\" para volver a procesar el documento con la nueva configuración de enmascaramiento.",
     "reembed-success": "El documento se volverá a procesar con la nueva política",
     "reembed-error": "Error al aplicar la política",
     "info-page-title": "Política de datos personales",

@@ -1279,7 +1279,6 @@
     "sort-label": "Lajittele",
     "sort-dir-asc": "Nouseva",
     "sort-dir-desc": "Laskeva",
-    "reembed": "Käytä käytäntöä",
     "filter-clear": "Tyhjennä suodatin {filter}",
     "filter-pii-policy": "Käytäntö",
     "filter-pii-policy-all": "Kaikki"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Arkaluontoiset tiedot",
     "badge-strict": "Kaikki henkilötiedot",
     "pii-policy-label": "Henkilötietojen peittokäytäntö",
-    "inline-edit-tooltip": "Käytäntö tallennettu. Napsauta \"Käytä käytäntöä\" käsitelläksesi asiakirjan uudelleen uusilla peittoasetuksilla.",
     "reembed-success": "Asiakirja käsitellään uudelleen uudella käytännöllä",
     "reembed-error": "Käytännön soveltaminen epäonnistui",
     "info-page-title": "Henkilötietokäytäntö",

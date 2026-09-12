@@ -69,7 +69,6 @@ const messages = {
     'status-failed': 'Failed',
     'status-queued': 'Queued',
     'no-files': 'No files',
-    reembed: 'Re-embed',
     delete: 'Delete',
     edit: 'Edit',
     view: 'View',
@@ -91,7 +90,6 @@ const messages = {
     'none-label': 'None',
     'toxic-only-label': 'Sensitive data',
     'strict-label': 'All personal data',
-    'inline-edit-tooltip': 'Changing the policy does not re-embed.',
     'badge-none': 'No masking',
     'badge-toxic-only': 'Sensitive data',
     'badge-strict': 'All personal data',
@@ -418,5 +416,28 @@ describe('UserFilesTable — the PII policy column', () => {
     expect(
       screen.queryByRole('menuitem', { name: /Change PII policy/i }),
     ).toBeNull();
+  });
+});
+
+/**
+ * Every row is 34px, and a wrapped cell is the way that stops being true.
+ * `prettyBytes` renders "2.41 MB", which a 76px column could not hold: every
+ * file over a megabyte put its unit on a second line and took its row to two.
+ */
+describe('UserFilesTable — rows keep one height', () => {
+  it('does not let the size or the date wrap', () => {
+    const { container } = renderTable({
+      files: [
+        makeFile({ fileSize: 2_410_000, createdAt: new Date('2026-09-12') }),
+      ],
+    });
+    // Name, size, added, status, actions — no selection or policy column here.
+    const [, size, added] = Array.from(
+      container.querySelectorAll('tbody tr:first-child td'),
+    );
+
+    expect(size).toHaveTextContent('2.41 MB');
+    expect(size.className).toContain('whitespace-nowrap');
+    expect(added.className).toContain('whitespace-nowrap');
   });
 });

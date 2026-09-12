@@ -54,7 +54,14 @@ import { useRouter } from '@/i18n/routing';
 const COLUMN = {
   select: 'w-7',
   name: 'w-auto',
-  size: 'w-[76px]',
+  /*
+    88px, not the 76 phase 7 specified. `prettyBytes` renders "2.41 MB" —
+    seven characters plus the cell's 24px of padding — and 76px left it one or
+    two pixels short, so every file over a megabyte wrapped its unit onto a
+    second line and took its row to two. A table whose rows are 34px except
+    when they are 48px is not a table you can scan down.
+  */
+  size: 'w-[88px]',
   added: 'w-[128px]',
   status: 'w-[108px]',
   policy: 'w-[168px]',
@@ -420,10 +427,15 @@ const FileRow = ({
             <RagScoreBadge metadata={file.metadata} />
           </span>
         </Td>
-        <Td className="text-right tabular-nums text-muted-foreground">
+        {/*
+          `whitespace-nowrap` on both, as the belt to the column widths'
+          braces. A wrapped number is a taller row, and a taller row is a
+          broken rhythm — which is the one thing this table is for.
+        */}
+        <Td className="whitespace-nowrap text-right tabular-nums text-muted-foreground">
           {prettyBytes(fileSize)}
         </Td>
-        <Td className="text-right tabular-nums text-muted-foreground">
+        <Td className="whitespace-nowrap text-right tabular-nums text-muted-foreground">
           {formattedCreatedAt}
         </Td>
         <Td>

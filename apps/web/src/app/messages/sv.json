@@ -1279,7 +1279,6 @@
     "sort-label": "Sortera",
     "sort-dir-asc": "Stigande",
     "sort-dir-desc": "Fallande",
-    "reembed": "Tillämpa policy",
     "filter-clear": "Rensa filtret {filter}",
     "filter-pii-policy": "Policy",
     "filter-pii-policy-all": "Alla"
@@ -2170,7 +2169,6 @@
     "badge-toxic-only": "Känsliga data",
     "badge-strict": "Alla personuppgifter",
     "pii-policy-label": "Policy för maskering av personuppgifter",
-    "inline-edit-tooltip": "Policyn har sparats. Klicka på \"Tillämpa policy\" för att bearbeta om dokumentet med de nya maskeringsinställningarna.",
     "reembed-success": "Dokumentet kommer att bearbetas om med den nya policyn",
     "reembed-error": "Det gick inte att tillämpa policyn",
     "info-page-title": "Policy för personuppgifter",
