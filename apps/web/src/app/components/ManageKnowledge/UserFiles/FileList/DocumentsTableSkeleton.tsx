@@ -25,8 +25,14 @@ const SkeletonRow = () => (
   </tr>
 );
 
+/**
+ * The same box the loaded table sits in — `min-h-0 flex-1` over its own
+ * scroller — so the panel does not resize under the reader when the data
+ * arrives. Without it the skeleton is only as tall as ten rows and the whole
+ * page jumps.
+ */
 export const DocumentsTableSkeleton = () => (
-  <div className="relative overflow-x-auto">
+  <div className="relative min-h-0 flex-1 overflow-x-auto overflow-y-auto">
     <table className="w-full text-sm">
       <thead>
         <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">

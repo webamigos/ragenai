@@ -62,18 +62,34 @@ const COLUMN = {
 /**
  * 30px, 11px uppercase display, per the phase 7 header rule.
  *
- * The labels are `column-*`, not the `sort-*` strings the grid's sort menu
- * uses. The two read in different frames: the menu says "Sort: Date Added",
- * the column says ADDED, and phase 7 names the columns FILE NAME · SIZE ·
- * ADDED · STATUS · PII POLICY. One set of words could not be both without
- * one of them reading like a sentence fragment.
+ * The labels are `column-*`, not the `sort-*` strings the sort chip uses. The
+ * two read in different frames: the chip says "Sort: Date Added", the column
+ * says ADDED, and phase 7 names the columns FILE NAME · SIZE · ADDED · STATUS
+ * · PII POLICY. One set of words could not be both without one of them
+ * reading like a sentence fragment.
+ *
+ * Sticky, so the column names stay put while the rows move under them. Three
+ * details make that work and are easy to undo by accident:
+ *
+ * - `bg-card`, because a transparent sticky header lets the rows show through
+ *   it as they pass.
+ * - `sticky` on each `<th>` rather than on `<thead>` or its `<tr>` — the row
+ *   and section variants are not honoured consistently across engines.
+ * - the table is `border-separate border-spacing-0`, not `border-collapse`.
+ *   Under collapse the resolved border belongs to the *table* and is painted
+ *   in the table's layer, so it does not travel with the sticky cell and the
+ *   header's hairline disappears the moment you scroll. Geometry is
+ *   unchanged because every rule in this table is a single `border-b`, so
+ *   nothing doubles up.
+ *
+ * `z-10` sits below Radix's portalled row menus, which render at body level.
  */
 function Th({ className, ...props }: React.ComponentPropsWithoutRef<'th'>) {
   return (
     <th
       {...props}
       className={cn(
-        'h-[30px] border-b border-paper-200 px-3 text-left align-middle font-display text-[11px] font-medium uppercase tracking-wide text-muted-foreground dark:border-paper-800',
+        'sticky top-0 z-10 h-[30px] border-b border-paper-200 bg-card px-3 text-left align-middle font-display text-[11px] font-medium uppercase tracking-wide text-muted-foreground dark:border-paper-800',
         className,
       )}
     />
@@ -567,9 +583,27 @@ export const UserFilesTable = ({
       squeezing. Below 840px the name column would otherwise be the one that
       gives, and a file name that has to be guessed at is the one thing this
       table exists to show.
+
+      This wrapper is also the page's *only* vertical scroller. The toolbar
+      above it and the pagination strip below it are its siblings and stay
+      put; `min-h-0 flex-1` is what makes it take the height that is left
+      instead of the height of its rows. `overflow-x-auto overflow-y-auto`
+      rather than `overflow-auto`: the two are equivalent to the browser, but
+      the explicit pair is what `sticky` on the header resolves against and
+      what the grid test asserts.
+
+      `border-separate` is load-bearing for that sticky header — see the
+      comment on `Th`.
+
+      Deliberately no `overscroll-contain`. Below `lg` the shell has no fixed
+      height, so this box grows to its rows and never scrolls — yet it is
+      still a scroll container, and `contain` on one of those can stop a
+      wheel from chaining out to the page that *does* scroll. At `lg` the
+      page cannot scroll at all, so containment has nothing to prevent. It
+      is a risk on one breakpoint and a no-op on the other.
     */
-    <div className="relative overflow-x-auto">
-      <table className="w-full min-w-[840px] table-fixed border-collapse text-sm [&_tbody_tr:last-child_td]:border-b-0">
+    <div className="relative min-h-0 flex-1 overflow-x-auto overflow-y-auto">
+      <table className="w-full min-w-[840px] table-fixed border-separate border-spacing-0 text-sm [&_tbody_tr:last-child_td]:border-b-0">
         <colgroup>
           {showCheckboxes && <col className={COLUMN.select} />}
           <col className={COLUMN.name} />

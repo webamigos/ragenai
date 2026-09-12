@@ -1251,6 +1251,7 @@
     "status-failed": "Fehlgeschlagen",
     "status-uploading": "Wird hochgeladen",
     "score-rag": "Bewertung für RAG",
+    "optimize-rag": "Für RAG optimieren",
     "sort-file-name": "Dateiname",
     "sort-file-size": "Dateigröße",
     "sort-created": "Hinzugefügt am",

@@ -214,7 +214,15 @@ export function SidebarLayout({
               </button>
             )}
             <div
-              className={`flex items-stretch justify-center min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-1rem)] p-4 sm:p-6 lg:bg-card lg:p-10 lg:ring-1 lg:ring-border ${isCollapsed && collapsedSidebar ? 'lg:rounded-r-lg' : 'lg:rounded-lg'}`}
+              /*
+                `panel-content-shell` and `panel-content-wrapper` below are
+                the two halves of the full-width opt-in. A page marks itself
+                with `data-panel-fullwidth` and `global.css` keys off that
+                descendant to drop the cap on the wrapper and the 40px
+                padding here. Both hooks are needed because the cap lives on
+                the child and the padding on the parent.
+              */
+              className={`panel-content-shell flex items-stretch justify-center min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-1rem)] p-4 sm:p-6 lg:bg-card lg:p-10 lg:ring-1 lg:ring-border ${isCollapsed && collapsedSidebar ? 'lg:rounded-r-lg' : 'lg:rounded-lg'}`}
             >
               {/*
                 The shell's cap is a *backstop*, not the reading measure. Every
@@ -239,7 +247,7 @@ export function SidebarLayout({
                 are unaffected because a column's children still size
                 themselves.
               */}
-              <div className="flex w-full max-w-6xl flex-col 2xl:max-w-[100rem]">
+              <div className="panel-content-wrapper flex w-full max-w-6xl flex-col 2xl:max-w-[100rem]">
                 {children}
               </div>
             </div>

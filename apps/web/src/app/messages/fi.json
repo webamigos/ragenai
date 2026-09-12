@@ -1251,6 +1251,7 @@
     "status-failed": "Epäonnistui",
     "status-uploading": "Ladataan",
     "score-rag": "RAG-pisteet",
+    "optimize-rag": "Optimoi RAG:ia varten",
     "sort-file-name": "Tiedoston nimi",
     "sort-file-size": "Tiedoston koko",
     "sort-created": "Lisäyspäivä",

@@ -726,8 +726,23 @@ export const FileListWrapperWithData = ({
         onDismiss={() => setBulkProgress({ status: 'idle' })}
       />
 
+      {/*
+        The drop target, and nothing else. It used to be the page's scroller
+        too — one `overflow-y-auto` box with a 2px dashed edge and an 8px
+        radius, holding the toolbar, the table and the pager together — which
+        put a second scrollbar and a second rounded border inside a panel that
+        is already a card, and read as an embedded widget rather than as the
+        page. The scrolling moved down to the table and the grid; this element
+        keeps the handlers and the highlight.
+
+        Still `border-dashed`, transparent at rest: the border reserves its own
+        space, so the highlight appearing on drag-over tints and outlines
+        without shifting a single row. 1px rather than 2px — panels here are
+        line drawings.
+      */}
       <div
-        className={`min-h-0 flex-1 overflow-y-auto rounded-lg border-2 border-dashed transition-colors ${
+        data-testid="documents-drop-zone"
+        className={`relative flex min-h-0 flex-1 flex-col rounded-md border border-dashed transition-colors ${
           isDragOver && !isSharedView
             ? 'bg-brand-50 border-brand-300 dark:bg-brand-900/20 dark:border-brand-600'
             : 'border-transparent'

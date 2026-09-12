@@ -384,7 +384,43 @@
 }
 /* Allow specific panel pages to break out of the default max-w-6xl content cap
    set by SidebarLayout. A child marks itself with [data-panel-fullwidth] and
-   we expand the wrapper. Used by table-heavy pages (e.g. leads detail). */
+   we expand the wrapper. Used by table-heavy pages — the knowledge base list.
+
+   Both hooks are set in SidebarLayout.tsx. Until that change they were not:
+   the rule below shipped matching nothing at all, because no element carried
+   `panel-content-wrapper`. If you are debugging a page that opted in and did
+   not widen, check the shell still has both classes.
+
+   These rules sit outside every `@layer`, so they beat Tailwind's utilities
+   without an `!important` — which is what lets them override `lg:p-10`,
+   `lg:min-h-[…]` and `2xl:max-w-[100rem]`.
+
+   `:has()` fires for any descendant, so exactly one element per route may
+   carry the attribute. */
 .panel-content-wrapper:has([data-panel-fullwidth]) {
   max-width: none;
+}
+
+/* A full-width page owns the panel's *height* as well as its width: its own
+   header, toolbar and pagination stay put while only its rows scroll, and
+   that needs a definite box rather than the shell's min-height.
+
+   Desktop only. Below `lg` the folder rail is hidden and the page scrolls as
+   a page, so a fixed height there would trap content instead of freeing it.
+
+   The trade: `overflow: hidden` means a page that opts in must carry an
+   unbroken `min-h-0` chain down to its own scroller, or its content is
+   silently clipped rather than scrolled. */
+@media (min-width: 64rem) {
+  .panel-content-shell:has([data-panel-fullwidth]) {
+    min-height: 0;
+    height: calc(100vh - 1rem); /* mirrors main's lg:pt-2 + pb-2 */
+    overflow: hidden;
+    /* was lg:p-10 — 40px of white around a full-bleed table reads as a frame */
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .panel-content-shell:has([data-panel-fullwidth]) > .panel-content-wrapper {
+    min-height: 0;
+  }
 }

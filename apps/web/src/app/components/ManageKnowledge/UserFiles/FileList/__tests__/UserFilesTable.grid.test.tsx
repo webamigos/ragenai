@@ -246,6 +246,51 @@ describe('UserFilesTable — the fixed grid', () => {
     );
   });
 
+  /**
+   * The table's wrapper is the page's only vertical scroller: the toolbar
+   * above it and the pagination strip below it stay put. `min-h-0 flex-1` is
+   * what makes it take the height that is left rather than the height of its
+   * own rows — without them it grows past the panel and is clipped, which
+   * reads as a broken table rather than a broken box.
+   */
+  it('scrolls its own rows rather than the page', () => {
+    const { container } = renderTable();
+    const wrapper = (container.querySelector('table') as HTMLTableElement)
+      .parentElement as HTMLElement;
+
+    expect(wrapper.className).toContain('overflow-y-auto');
+    expect(wrapper.className).toContain('min-h-0');
+    expect(wrapper.className).toContain('flex-1');
+  });
+
+  /**
+   * Three details keep the header in place while the rows move under it, and
+   * every one of them is easy to undo by accident:
+   *
+   * - `sticky top-0` on each `<th>` — the `<thead>` and `<tr>` variants are
+   *   not honoured consistently across engines;
+   * - an opaque background, or the rows show through the header as they pass;
+   * - `border-separate`, because under `border-collapse` the resolved border
+   *   belongs to the table and is painted in the table's layer, so it does not
+   *   travel with the sticky cell and the header's hairline disappears the
+   *   moment you scroll.
+   */
+  it('pins the column names while the rows move under them', () => {
+    const { container } = renderTable();
+    const table = container.querySelector('table') as HTMLTableElement;
+
+    expect(table.className).toContain('border-separate');
+    expect(table.className).not.toContain('border-collapse');
+
+    const headers = Array.from(container.querySelectorAll('thead th'));
+    expect(headers.length).toBeGreaterThan(0);
+    for (const th of headers) {
+      expect(th.className).toContain('sticky');
+      expect(th.className).toContain('top-0');
+      expect(th.className).toContain('bg-card');
+    }
+  });
+
   it('opens the preview from the keyboard, through the name', () => {
     // A `<tr>` takes no focus and answers no Enter, so a row that is only
     // clickable is a row a keyboard cannot reach. The name is the control.

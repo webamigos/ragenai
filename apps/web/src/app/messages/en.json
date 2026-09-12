@@ -1251,6 +1251,7 @@
     "status-failed": "Failed",
     "status-uploading": "Uploading",
     "score-rag": "Score for RAG",
+    "optimize-rag": "Optimize for RAG",
     "sort-file-name": "File Name",
     "sort-file-size": "File Size",
     "sort-created": "Date Added",

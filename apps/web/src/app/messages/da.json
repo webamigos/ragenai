@@ -1251,6 +1251,7 @@
     "status-failed": "Mislykkedes",
     "status-uploading": "Uploader",
     "score-rag": "RAG-score",
+    "optimize-rag": "Optimér til RAG",
     "sort-file-name": "Filnavn",
     "sort-file-size": "Filstørrelse",
     "sort-created": "Tilføjelsesdato",

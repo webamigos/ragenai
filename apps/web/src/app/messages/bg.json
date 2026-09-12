@@ -1251,6 +1251,7 @@
     "status-failed": "Неуспешен",
     "status-uploading": "Качва се",
     "score-rag": "RAG резултат",
+    "optimize-rag": "Оптимизиране за RAG",
     "sort-file-name": "Име на файла",
     "sort-file-size": "Размер на файла",
     "sort-created": "Дата на добавяне",

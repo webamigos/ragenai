@@ -152,10 +152,21 @@ export function DocumentsListContent({
     // stretches its children. Without min-h-0 the folder column's
     // overflow-y-auto never scrolls: a flex item's default min-height is
     // auto, so it grows to its content instead of clipping.
-    <div className="flex min-h-0 flex-1 gap-3 pb-5">
+    //
+    // `data-panel-fullwidth` is the shell's opt-in (see global.css): it drops
+    // the max-w-6xl cap, trims the 40px padding and — the part this page
+    // depends on — gives the shell a definite height, so the header, toolbar
+    // and pagination below can stay put while only the rows scroll. The
+    // min-h-0 chain from here down to the table's scroller is what keeps that
+    // height from clipping instead of scrolling. Its bottom padding comes
+    // from the shell now, which is why there is no `pb-5` here.
+    <div data-panel-fullwidth className="flex min-h-0 flex-1 gap-3">
       {/* 216px, per phase 7. Its own scroll area: the usage block is pinned to
-          the bottom of the rail and must not scroll away with the folders. */}
-      <div className="hidden w-[216px] shrink-0 border-r border-border pr-2 lg:block">
+          the bottom of the rail and must not scroll away with the folders.
+          `min-h-0` is what makes that scroll real — FoldersList is `h-full`
+          over an `overflow-y-auto` body, which only clips once the rail has a
+          height to be bounded by. */}
+      <div className="hidden min-h-0 w-[216px] shrink-0 border-r border-border pr-2 lg:block">
         <FoldersList
           initialFolders={folders}
           onSelectFolder={handleSelectFolder}
@@ -168,7 +179,7 @@ export function DocumentsListContent({
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <FileListWrapperWithData
           result={result}
           sort={sort}

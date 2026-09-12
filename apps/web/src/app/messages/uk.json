@@ -1251,6 +1251,7 @@
     "status-failed": "Не вдалося",
     "status-uploading": "Завантажується",
     "score-rag": "Оцінка RAG",
+    "optimize-rag": "Оптимізувати для RAG",
     "sort-file-name": "Назва файлу",
     "sort-file-size": "Розмір файлу",
     "sort-created": "Дата додавання",

@@ -1251,6 +1251,7 @@
     "status-failed": "Nezdařilo se",
     "status-uploading": "Nahrávání",
     "score-rag": "RAG skóre",
+    "optimize-rag": "Optimalizovat pro RAG",
     "sort-file-name": "Název souboru",
     "sort-file-size": "Velikost souboru",
     "sort-created": "Datum přidání",
