@@ -58,7 +58,6 @@ export const splitText = async ({
       const source = rawDocs[0];
       const anchors = source?.metadata?.doclingPageAnchors as
         PageAnchor[] | undefined;
-
       return anchors && anchors.length > 0
         ? attachSourcePages(chunks, source.pageContent, anchors)
         : chunks;

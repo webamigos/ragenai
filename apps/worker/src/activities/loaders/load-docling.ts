@@ -21,8 +21,10 @@ type LoadDoclingParams = FileLocator & {
  *
  * For spreadsheets (XLSX/CSV), Docling produces Markdown tables rather than
  * raw CSV, which means the output goes through the markdown splitter instead
- * of the CSV row-group splitter. This is intentional — Docling's Markdown
- * tables preserve structure better for RAG retrieval.
+ * of the CSV row-group splitter. This was called intentional when it was
+ * written; `docs/lessons/docling-routes-spreadsheets-past-the-csv-splitter.md`
+ * records what it costs — ADR-17's repeated header no longer reaches the two
+ * file types it was written for.
  */
 export const loadDocling = async ({
   orgId,
@@ -34,15 +36,12 @@ export const loadDocling = async ({
 
   const filePath = await ensureLocalFile({ orgId, fileId, fileName });
 
-  const { markdown, pageCount, pageAnchors } = await convertWithDocling(
-    filePath,
-    fileName,
-    {
+  const { markdown, pageCount, pageAnchors, tables, elementLabels } =
+    await convertWithDocling(filePath, fileName, {
       doOcr: true,
       tableMode: 'accurate',
       imageExportMode: 'placeholder',
-    },
-  );
+    });
 
   return [
     {
@@ -59,6 +58,16 @@ export const loadDocling = async ({
         // Where each page starts in this markdown, so the splitter can give
         // every chunk the page it actually came from.
         ...(pageAnchors.length > 0 ? { doclingPageAnchors: pageAnchors } : {}),
+        // The parsed tables, riding the same channel. `convertWithDocling` is
+        // the only place `json_content` exists and the splitter is two modules
+        // further on, so `doc.metadata` is the transport — the one
+        // `doclingPageAnchors` already established. Spread conditionally, so a
+        // document with no tables carries no key at all and its chunks are
+        // byte-identical to before this existed.
+        ...(tables.length > 0 ? { doclingTables: tables } : {}),
+        ...(Object.keys(elementLabels).length > 0
+          ? { doclingElementLabels: elementLabels }
+          : {}),
       },
     },
   ];

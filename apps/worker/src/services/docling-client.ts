@@ -19,6 +19,56 @@ type DoclingConvertResponse = {
 };
 
 /**
+ * One cell of a parsed table, as `DoclingDocument` reports it.
+ *
+ * `column_header` is what makes a row-group strategy possible without a
+ * heuristic: the parser states which row holds the column names instead of
+ * leaving us to guess from the first one. Confirmed present on Docling's
+ * HTML, markdown and spreadsheet backends — see
+ * `__tests__/docling-table-contract.test.ts`, which pins it.
+ */
+export type DoclingTableCell = {
+  text: string;
+  columnHeader: boolean;
+  /** > 1 on a merged cell. A repeated header flattens these and loses some meaning. */
+  rowSpan: number;
+  colSpan: number;
+  startRow: number;
+  startCol: number;
+};
+
+/** A table Docling parsed out of the document, alongside the markdown. */
+export type DoclingTable = {
+  /** Its own `#/tables/N` reference, kept so a placeholder can be traced back. */
+  selfRef: string;
+  numRows: number;
+  numCols: number;
+  cells: DoclingTableCell[];
+  /** Docling's own caption, when it found one. Often absent. */
+  caption?: string;
+  /**
+   * The page this table sits on, 1-based.
+   *
+   * Read straight from `tables[i].prov[0].page_no`, which uses no shared
+   * cursor and therefore does not touch the text anchor walk's invariant.
+   * Absent for a source with no pages at all — a markdown document reports
+   * `prov: []`.
+   */
+  page?: number;
+};
+
+/**
+ * How many elements of each Docling label the document contains.
+ *
+ * Carried for the table work's follow-ups rather than for itself: dropping
+ * `page_header` and `page_footer` before they reach a chunk is a second change
+ * to chunk content and owes its own measurement, so the labels are plumbed and
+ * nothing acts on them. A count rather than a per-element list because nothing
+ * yet needs to know *which* element.
+ */
+export type DoclingElementLabels = Record<string, number>;
+
+/**
  * Where one text element starts in the markdown, and where it sits on the page.
  *
  * One per *located* element, not one per page. The page lookup that reads
@@ -82,6 +132,22 @@ export type DoclingConversion = {
    * mid-flight across a deploy for no gain the caller can see.
    */
   pageAnchors: TextElementAnchor[];
+  /**
+   * The tables Docling parsed, in document order.
+   *
+   * Empty for a document with none, and empty whenever `json_content` could
+   * not be read — the same silence as `pageAnchors`, and for the same reason:
+   * the markdown is the part ingest cannot do without.
+   *
+   * These exist here because `loadDocling` never sees `json_content` and the
+   * splitter runs two modules further on. Widening this return type is
+   * necessary and not sufficient — the loader puts them on `doc.metadata` and
+   * the splitter reads them back off, following the channel `pageAnchors`
+   * already uses.
+   */
+  tables: DoclingTable[];
+  /** How many elements carry each label. Plumbed; nothing reads it yet. */
+  elementLabels: DoclingElementLabels;
 };
 
 /** Docling's box: named sides in absolute points, plus the origin they mean. */
@@ -268,6 +334,125 @@ function buildTextElementAnchors(
 }
 
 /**
+ * Reads the parsed tables out of a `DoclingDocument`.
+ *
+ * Renamed to camelCase at this boundary rather than downstream, because
+ * everything past `convertWithDocling` is worker code with the loader
+ * convention and `prepareMetadata` is the one place that goes back to
+ * snake_case.
+ *
+ * A malformed entry is dropped rather than repaired. The table chunker refuses
+ * wholesale when its candidates and its tables do not line up, so a
+ * half-understood table is worse than one that was never reported.
+ */
+function readTables(parsed: unknown): DoclingTable[] {
+  const tables = (parsed as { tables?: unknown } | null)?.tables;
+  if (!Array.isArray(tables)) {
+    return [];
+  }
+
+  const result: DoclingTable[] = [];
+  for (const entry of tables) {
+    const table = entry as {
+      self_ref?: unknown;
+      captions?: unknown;
+      prov?: unknown;
+      data?: {
+        table_cells?: unknown;
+        num_rows?: unknown;
+        num_cols?: unknown;
+      };
+    } | null;
+    const cellsRaw = table?.data?.table_cells;
+    const numRows = table?.data?.num_rows;
+    const numCols = table?.data?.num_cols;
+    if (
+      !Array.isArray(cellsRaw) ||
+      typeof numRows !== 'number' ||
+      typeof numCols !== 'number' ||
+      numRows < 1 ||
+      numCols < 1
+    ) {
+      continue;
+    }
+
+    const cells: DoclingTableCell[] = [];
+    for (const cellRaw of cellsRaw) {
+      const cell = cellRaw as {
+        text?: unknown;
+        column_header?: unknown;
+        row_span?: unknown;
+        col_span?: unknown;
+        start_row_offset_idx?: unknown;
+        start_col_offset_idx?: unknown;
+      } | null;
+      if (
+        typeof cell?.text !== 'string' ||
+        typeof cell.start_row_offset_idx !== 'number' ||
+        typeof cell.start_col_offset_idx !== 'number'
+      ) {
+        continue;
+      }
+      cells.push({
+        text: cell.text,
+        columnHeader: cell.column_header === true,
+        rowSpan: typeof cell.row_span === 'number' ? cell.row_span : 1,
+        colSpan: typeof cell.col_span === 'number' ? cell.col_span : 1,
+        startRow: cell.start_row_offset_idx,
+        startCol: cell.start_col_offset_idx,
+      });
+    }
+    if (cells.length === 0) {
+      continue;
+    }
+
+    // Docling's own caption, when it found one. Both backends the corpus uses
+    // report `captions: []`, so the placeholder needs its ordinal fallback.
+    const captions = Array.isArray(table?.captions) ? table.captions : [];
+    const caption = captions
+      .map((c) => (c as { text?: unknown })?.text)
+      .find(
+        (text): text is string => typeof text === 'string' && text.length > 0,
+      );
+
+    const prov = Array.isArray(table?.prov) ? table.prov : [];
+    const page = (prov[0] as { page_no?: unknown } | undefined)?.page_no;
+
+    result.push({
+      selfRef:
+        typeof table?.self_ref === 'string'
+          ? table.self_ref
+          : `#/tables/${result.length}`,
+      numRows,
+      numCols,
+      cells,
+      ...(caption !== undefined ? { caption } : {}),
+      ...(typeof page === 'number' ? { page } : {}),
+    });
+  }
+
+  return result;
+}
+
+/** Counts elements per Docling label, across texts, tables and pictures. */
+function readElementLabels(parsed: unknown): DoclingElementLabels {
+  const labels: DoclingElementLabels = {};
+  for (const key of ['texts', 'tables', 'pictures'] as const) {
+    const elements = (parsed as Record<string, unknown> | null)?.[key];
+    if (!Array.isArray(elements)) {
+      continue;
+    }
+    for (const element of elements) {
+      const label = (element as { label?: unknown })?.label;
+      if (typeof label === 'string' && label.length > 0) {
+        labels[label] = (labels[label] ?? 0) + 1;
+      }
+    }
+  }
+  return labels;
+}
+
+/**
  * Reads the page count out of a `DoclingDocument`.
  *
  * `pages` is a map keyed by page number, so its size is the count. Returns
@@ -410,6 +595,9 @@ export const convertWithDocling = async (
     markdown,
     result.document?.json_content,
   );
+  const parsed = parseJsonContent(result.document?.json_content);
+  const tables = readTables(parsed);
+  const elementLabels = readElementLabels(parsed);
 
   logger.info(
     {
@@ -423,11 +611,12 @@ export const convertWithDocling = async (
       // an overlay that quietly stopped appearing.
       anchorsWithRegion: pageAnchors.filter((a) => a.region !== undefined)
         .length,
+      tables: tables.length,
     },
     'Docling conversion completed',
   );
 
-  return { markdown, pageCount, pageAnchors };
+  return { markdown, pageCount, pageAnchors, tables, elementLabels };
 };
 
 /**

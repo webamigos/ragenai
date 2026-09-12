@@ -87,6 +87,8 @@ describe('convertWithDocling', () => {
       markdown: '# Hi',
       pageCount: null,
       pageAnchors: [],
+      tables: [],
+      elementLabels: {},
     });
   });
 
