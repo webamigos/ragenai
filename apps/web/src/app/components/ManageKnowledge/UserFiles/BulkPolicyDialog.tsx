@@ -18,20 +18,38 @@ type Props = {
   isOpen: boolean;
   isLoading?: boolean;
   count: number;
+  /**
+   * Set when the dialog was opened from one row's menu rather than from the
+   * selection bar. The description then names the file instead of counting a
+   * selection that does not exist.
+   */
+  fileName?: string;
+  /**
+   * What the select starts on. For one file that is its current policy —
+   * opening the dialog on a STRICT file and finding "Sensitive data"
+   * preselected misstates what the file is set to, and one careless Apply
+   * later it would be true. A selection has no single current value, so it
+   * starts on the recommended one.
+   */
+  initialPolicy?: PiiPolicyValue;
   onClose: () => void;
   onConfirm: (policy: PiiPolicyValue, reprocess: boolean) => void;
 };
 
 /**
- * Change the PII policy across a selection.
+ * Change the PII policy — on a selection, or on one file from its row menu.
  *
- * The reprocess checkbox is the bulk form of what the row does. A policy
- * describes what to strip while a file is being parsed, so changing it leaves
- * the already-indexed text exactly as it was — the row makes that visible by
- * revealing a Reprocess button the moment the select changes, and here the
- * same fact is a checked box the person can uncheck. Defaulting it to on is
- * the honest default: a policy that has not been applied to anything is not a
- * policy, and someone changing it on forty files means the forty files.
+ * One dialog for both, because they ask the same question. The row's column
+ * used to answer it with a live select and a Reprocess button that appeared
+ * beside it, which meant a data-protection setting could change from a stray
+ * click, with nothing said about the text already indexed under the old
+ * policy.
+ *
+ * The reprocess checkbox is where that is now said. A policy describes what
+ * to strip while a file is being parsed, so changing it leaves what is
+ * already indexed exactly as it was. Defaulting the box to on is the honest
+ * default: a policy that has not been applied to anything is not a policy,
+ * and someone changing it on forty files means the forty files.
  */
 export const BulkPolicyDialog = (props: Props) => {
   /*
@@ -58,11 +76,15 @@ const BulkPolicyDialogForm = ({
   isOpen,
   isLoading,
   count,
+  fileName,
+  initialPolicy,
   onClose,
   onConfirm,
 }: Props) => {
   const t = useTranslations('bulk-policy-modal');
-  const [policy, setPolicy] = useState<PiiPolicyValue>('TOXIC_ONLY');
+  const [policy, setPolicy] = useState<PiiPolicyValue>(
+    initialPolicy ?? 'TOXIC_ONLY',
+  );
   const [reprocess, setReprocess] = useState(true);
 
   return (
@@ -83,7 +105,11 @@ const BulkPolicyDialogForm = ({
       <DialogContent showCloseButton={!isLoading}>
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
-          <DialogDescription>{t('description', { count })}</DialogDescription>
+          <DialogDescription>
+            {fileName
+              ? t('description-single', { fileName })
+              : t('description', { count })}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

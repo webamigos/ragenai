@@ -1253,6 +1253,7 @@
     "status-uploading": "Feltöltés folyamatban",
     "score-rag": "RAG pontszám",
     "optimize-rag": "Optimalizálás RAG-hoz",
+    "change-pii-policy": "Adatvédelmi szabály módosítása",
     "sort-file-name": "Fájlnév",
     "sort-file-size": "Fájlméret",
     "sort-created": "Hozzáadás dátuma",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "PII-szabály módosítása",
     "description": "Egy szabály az összes kijelölt fájlra: {count, plural, one {# fájl} other {# fájl}}.",
+    "description-single": "A(z) „{fileName}” szabályának módosítása. A már indexelt szöveg változatlan marad, amíg a fájlt újra fel nem dolgozzák.",
     "apply": "Alkalmazás ({count, plural, one {# fájl} other {# fájl}})",
     "applying": "Alkalmazás...",
     "reprocess-label": "Újrafeldolgozás most",

@@ -168,6 +168,15 @@ export const FileListWrapperWithData = ({
   const [isBulkMoveOpen, setIsBulkMoveOpen] = useState(false);
   const [isBulkShareOpen, setIsBulkShareOpen] = useState(false);
   const [isBulkPolicyOpen, setIsBulkPolicyOpen] = useState(false);
+  /**
+   * The one file whose policy is being changed from its row menu, or `null`
+   * when the dialog was opened from the selection bar.
+   *
+   * One dialog for both. A row and a selection ask the same question — which
+   * policy, and do you want what is already indexed reprocessed under it —
+   * and a second dialog would be a second set of words for it.
+   */
+  const [policyRowFileId, setPolicyRowFileId] = useState<string | null>(null);
   const [isBulkLoading, setIsBulkLoading] = useState(false);
   const [previewFile, setPreviewFile] = useState<UserFileTypeSafe | null>(null);
   const [previewIndex, setPreviewIndex] = useState<number>(0);
@@ -294,6 +303,21 @@ export const FileListWrapperWithData = ({
    * alternative — always moving one file — makes the selection checkboxes
    * look like they do nothing.
    */
+  /**
+   * Open the policy dialog for one row.
+   *
+   * Handed only to someone who may change it — `canManageOrg` — so the item
+   * is absent rather than disabled for everyone else.
+   */
+  const policyRowFile = policyRowFileId
+    ? filteredFiles.find((file) => file.id === policyRowFileId)
+    : undefined;
+
+  const handleChangeRowPolicy = useCallback((fileId: string) => {
+    setPolicyRowFileId(fileId);
+    setIsBulkPolicyOpen(true);
+  }, []);
+
   const handleDragFiles = useCallback(
     (fileId: string) =>
       bulk.isSelected(fileId) && fileIds.length > 0 ? fileIds : [fileId],
@@ -452,11 +476,13 @@ export const FileListWrapperWithData = ({
     policy: PiiPolicyValue,
     reprocess: boolean,
   ) => {
+    // A row menu names its own file; the selection bar means the selection.
+    const targetIds = policyRowFileId ? [policyRowFileId] : fileIds;
     setIsBulkLoading(true);
-    const count = fileIds.length;
+    const count = targetIds.length;
     try {
       const policyResult = await bulkUpdatePiiPolicyAction(
-        fileIds,
+        targetIds,
         policy as PiiPolicy,
       );
 
@@ -476,6 +502,7 @@ export const FileListWrapperWithData = ({
       }
 
       setIsBulkPolicyOpen(false);
+      setPolicyRowFileId(null);
 
       // Only the files that took the new policy are worth reprocessing —
       // reparsing the ones that failed to change would spend the work and
@@ -908,6 +935,9 @@ export const FileListWrapperWithData = ({
             subfolders={subfolders}
             onNavigateFolder={onNavigateFolder}
             onDragFiles={handleDragFiles}
+            onChangeRowPolicy={
+              canManageOrg === true ? handleChangeRowPolicy : undefined
+            }
             sort={sort}
             dir={dir}
             selectedFileTypes={selectedFileTypes}
@@ -1019,8 +1049,15 @@ export const FileListWrapperWithData = ({
       <BulkPolicyDialog
         isOpen={isBulkPolicyOpen}
         isLoading={isBulkLoading}
-        count={bulk.selectedCount}
-        onClose={() => setIsBulkPolicyOpen(false)}
+        count={policyRowFileId ? 1 : bulk.selectedCount}
+        fileName={policyRowFile?.fileName}
+        initialPolicy={
+          (policyRowFile?.piiPolicy as PiiPolicyValue | undefined) ?? undefined
+        }
+        onClose={() => {
+          setIsBulkPolicyOpen(false);
+          setPolicyRowFileId(null);
+        }}
         onConfirm={handleBulkChangePolicy}
       />
 

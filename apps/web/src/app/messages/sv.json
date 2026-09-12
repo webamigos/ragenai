@@ -1253,6 +1253,7 @@
     "status-uploading": "Laddar upp",
     "score-rag": "RAG-poäng",
     "optimize-rag": "Optimera för RAG",
+    "change-pii-policy": "Ändra persondatapolicy",
     "sort-file-name": "Filnamn",
     "sort-file-size": "Filstorlek",
     "sort-created": "Tillagd datum",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Ändra PII-policy",
     "description": "En policy för alla valda filer: {count, plural, one {# fil} other {# filer}}.",
+    "description-single": "Ändrar policyn för ”{fileName}”. Redan indexerad text förblir oförändrad tills filen bearbetas igen.",
     "apply": "Använd ({count, plural, one {# fil} other {# filer}})",
     "applying": "Tillämpar...",
     "reprocess-label": "Bearbeta igen nu",

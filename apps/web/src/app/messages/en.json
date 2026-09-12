@@ -1253,6 +1253,7 @@
     "status-uploading": "Uploading",
     "score-rag": "Score for RAG",
     "optimize-rag": "Optimize for RAG",
+    "change-pii-policy": "Change PII policy",
     "sort-file-name": "File Name",
     "sort-file-size": "File Size",
     "sort-created": "Date Added",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Change PII policy",
     "description": "One policy for every file you selected: {count, plural, one {# file} other {# files}}.",
+    "description-single": "Changing the policy for “{fileName}”. Text that is already indexed stays as it is until the file is reprocessed.",
     "apply": "Apply ({count, plural, one {# file} other {# files}})",
     "applying": "Applying...",
     "reprocess-label": "Reprocess now",

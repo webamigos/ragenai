@@ -8,6 +8,7 @@ import {
   EmbeddingStatus,
   ParsingStatus,
   type FileType,
+  type PiiPolicy,
   type UserFile,
 } from '@/generated/prisma/browser';
 import { cn } from '@/lib/utils';
@@ -28,12 +29,12 @@ import {
 } from '@heroicons/react/24/outline';
 import { SuspiciousContentBadge } from './SuspiciousContentBadge';
 import { RagScoreBadge } from './RagScoreBadge';
-import { PiiPolicySelect, type PiiPolicyValue } from '../../PiiPolicySelect';
+import { PiiPolicyBadge } from '../../PiiPolicyBadge';
 import { Tooltip } from '@ragenai/common-ui/Tooltip';
 import { EmptyState } from '@ragenai/common-ui/EmptyState';
 import { setDraggedFileIds } from '@/features/documents/constants/file-drag';
 import { scoreDocumentAction } from '@/app/[locale]/(panel)/knowledge/optimize-document/actions';
-import { updateFilePiiPolicy, reembedFile } from '@/app/actions';
+
 import { statusToast } from '@/app/lib/utils/toast';
 import { useRouter } from '@/i18n/routing';
 
@@ -147,6 +148,8 @@ type Props = {
   canManageOrg?: boolean;
   /** See `FileRowProps.onDragFiles`. */
   onDragFiles?: (fileId: string) => string[];
+  /** See `FileRowProps.onChangeRowPolicy`. */
+  onChangeRowPolicy?: (fileId: string) => void;
 } & SelectionProps;
 
 export type UserFileTypeSafe = UserFileType & {
@@ -175,6 +178,12 @@ type FileRowProps = {
    * knows what that is.
    */
   onDragFiles?: (fileId: string) => string[];
+  /**
+   * Opens the confirmation dialog for this file's PII policy. Absent for
+   * anyone who may not change it, so the menu item is missing rather than
+   * present and disabled.
+   */
+  onChangeRowPolicy?: (fileId: string) => void;
 };
 
 export type ModalStateProps = {
@@ -226,20 +235,11 @@ const FileRow = ({
   onPreviewFile,
   canManageOrg,
   onDragFiles,
+  onChangeRowPolicy,
 }: FileRowProps) => {
   const [isLoading] = useState(false);
   const [isScoringLoading, setIsScoringLoading] = useState(false);
-  const [isPiiUpdating, setIsPiiUpdating] = useState(false);
-  const savedPiiPolicy = useRef<PiiPolicyValue>(
-    (file.piiPolicy as PiiPolicyValue) ?? 'TOXIC_ONLY',
-  );
-  const [currentPiiPolicy, setCurrentPiiPolicy] = useState<PiiPolicyValue>(
-    (file.piiPolicy as PiiPolicyValue) ?? 'TOXIC_ONLY',
-  );
-  const [isReembedding, setIsReembedding] = useState(false);
   const tBulkBar = useTranslations('bulk-action-bar');
-  const tPii = useTranslations('pii-policy');
-  const tTable = useTranslations('files-table');
   const { infoToast, errorToast } = statusToast();
   const router = useRouter();
 
@@ -433,53 +433,19 @@ const FileRow = ({
           />
         </Td>
         {canManageOrg === true && (
-          <Td onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-2">
-              <PiiPolicySelect
-                value={currentPiiPolicy}
-                disabled={isPiiUpdating || isReembedding}
-                compact
-                onChange={async (policy) => {
-                  setIsPiiUpdating(true);
-                  try {
-                    await updateFilePiiPolicy(file.id, policy as any);
-                    setCurrentPiiPolicy(policy);
-                  } catch {
-                    errorToast({ message: 'Failed to update PII policy' });
-                  } finally {
-                    setIsPiiUpdating(false);
-                  }
-                }}
-              />
-              {currentPiiPolicy !== savedPiiPolicy.current && (
-                <Tooltip
-                  id={`pii-reembed-tooltip-${file.id}`}
-                  content={tPii('inline-edit-tooltip')}
-                  place="top"
-                >
-                  <button
-                    type="button"
-                    disabled={isReembedding}
-                    onClick={async () => {
-                      setIsReembedding(true);
-                      try {
-                        await reembedFile(file.id);
-                        infoToast({ message: tPii('reembed-success') });
-                        savedPiiPolicy.current = currentPiiPolicy;
-                        router.refresh();
-                      } catch {
-                        errorToast({ message: tPii('reembed-error') });
-                      } finally {
-                        setIsReembedding(false);
-                      }
-                    }}
-                    className="shrink-0 rounded px-2 py-1 text-xs font-medium bg-brand-600 text-primary-foreground hover:bg-brand-700 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    {isReembedding ? '…' : tTable('reembed')}
-                  </button>
-                </Tooltip>
-              )}
-            </div>
+          /*
+            The policy, not a control for it.
+
+            This cell used to hold a live select, so a file's masking could
+            change from a stray click in a menu nobody meant to open — no
+            confirmation, and nothing said about the text already indexed
+            under the old policy. It reads now, and changing it is an item in
+            the row's menu behind a dialog, the same deliberate step Delete
+            gets. Panel rule 12 already says every row action belongs in that
+            menu; this was the one that had climbed out of it.
+          */
+          <Td>
+            <PiiPolicyBadge piiPolicy={file.piiPolicy as PiiPolicy} compact />
           </Td>
         )}
         <Td className="text-right" onClick={(e) => e.stopPropagation()}>
@@ -495,6 +461,7 @@ const FileRow = ({
                 : undefined
             }
             isScoringLoading={isScoringLoading}
+            onChangePolicy={onChangeRowPolicy}
           />
         </Td>
       </tr>
@@ -528,6 +495,7 @@ export const UserFilesTable = ({
   onResetFilters,
   canManageOrg,
   onDragFiles,
+  onChangeRowPolicy,
 }: Props & ComponentProps<'table'>) => {
   const t = useTranslations('files-table');
   const tBulkBar = useTranslations('bulk-action-bar');
@@ -806,6 +774,7 @@ export const UserFilesTable = ({
               onPreviewFile={onPreviewFile}
               canManageOrg={canManageOrg}
               onDragFiles={onDragFiles}
+              onChangeRowPolicy={onChangeRowPolicy}
             />
           ))}
         </tbody>

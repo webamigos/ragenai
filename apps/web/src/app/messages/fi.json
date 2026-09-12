@@ -1253,6 +1253,7 @@
     "status-uploading": "Ladataan",
     "score-rag": "RAG-pisteet",
     "optimize-rag": "Optimoi RAG:ia varten",
+    "change-pii-policy": "Muuta henkilötietokäytäntöä",
     "sort-file-name": "Tiedoston nimi",
     "sort-file-size": "Tiedoston koko",
     "sort-created": "Lisäyspäivä",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Vaihda PII-käytäntö",
     "description": "Yksi käytäntö kaikille valituille tiedostoille: {count, plural, one {# tiedosto} other {# tiedostoa}}.",
+    "description-single": "Muutetaan tiedoston ”{fileName}” käytäntöä. Jo indeksoitu teksti pysyy ennallaan, kunnes tiedosto käsitellään uudelleen.",
     "apply": "Käytä ({count, plural, one {# tiedosto} other {# tiedostoa}})",
     "applying": "Otetaan käyttöön...",
     "reprocess-label": "Käsittele uudelleen heti",

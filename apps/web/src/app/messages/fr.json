@@ -1253,6 +1253,7 @@
     "status-uploading": "Téléversement en cours",
     "score-rag": "Score RAG",
     "optimize-rag": "Optimiser pour le RAG",
+    "change-pii-policy": "Modifier la politique de données personnelles",
     "sort-file-name": "Nom du fichier",
     "sort-file-size": "Taille du fichier",
     "sort-created": "Date d'ajout",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Changer la politique PII",
     "description": "Une seule politique pour tous les fichiers sélectionnés : {count, plural, one {# fichier} other {# fichiers}}.",
+    "description-single": "Modification de la politique de « {fileName} ». Le texte déjà indexé reste inchangé jusqu’au prochain traitement du fichier.",
     "apply": "Appliquer ({count, plural, one {# fichier} other {# fichiers}})",
     "applying": "Application...",
     "reprocess-label": "Retraiter maintenant",

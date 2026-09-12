@@ -1253,6 +1253,7 @@
     "status-uploading": "Wird hochgeladen",
     "score-rag": "Bewertung für RAG",
     "optimize-rag": "Für RAG optimieren",
+    "change-pii-policy": "Datenschutzrichtlinie ändern",
     "sort-file-name": "Dateiname",
     "sort-file-size": "Dateigröße",
     "sort-created": "Hinzugefügt am",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "PII-Richtlinie ändern",
     "description": "Eine Richtlinie für alle ausgewählten Dateien: {count, plural, one {# Datei} other {# Dateien}}.",
+    "description-single": "Richtlinie für „{fileName}“ ändern. Der bereits indexierte Text bleibt unverändert, bis die Datei erneut verarbeitet wird.",
     "apply": "Anwenden ({count, plural, one {# Datei} other {# Dateien}})",
     "applying": "Wird angewendet...",
     "reprocess-label": "Jetzt neu verarbeiten",

@@ -1253,6 +1253,7 @@
     "status-uploading": "Завантажується",
     "score-rag": "Оцінка RAG",
     "optimize-rag": "Оптимізувати для RAG",
+    "change-pii-policy": "Змінити політику ПІІ",
     "sort-file-name": "Назва файлу",
     "sort-file-size": "Розмір файлу",
     "sort-created": "Дата додавання",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Змінити політику PII",
     "description": "Одна політика для всіх вибраних файлів: {count, plural, one {# файл} few {# файли} many {# файлів} other {# файлів}}.",
+    "description-single": "Зміна політики для «{fileName}». Уже проіндексований текст залишиться незмінним, доки файл не буде оброблено повторно.",
     "apply": "Застосувати ({count, plural, one {# файл} few {# файли} many {# файлів} other {# файлів}})",
     "applying": "Застосування...",
     "reprocess-label": "Обробити знову зараз",

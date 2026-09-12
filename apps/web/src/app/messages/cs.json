@@ -1253,6 +1253,7 @@
     "status-uploading": "Nahrávání",
     "score-rag": "RAG skóre",
     "optimize-rag": "Optimalizovat pro RAG",
+    "change-pii-policy": "Změnit zásady pro osobní údaje",
     "sort-file-name": "Název souboru",
     "sort-file-size": "Velikost souboru",
     "sort-created": "Datum přidání",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Změna politiky PII",
     "description": "Jedna politika pro všechny vybrané soubory: {count, plural, one {# soubor} few {# soubory} other {# souborů}}.",
+    "description-single": "Změna zásad pro „{fileName}“. Již indexovaný text zůstane beze změny, dokud soubor znovu nezpracujete.",
     "apply": "Použít ({count, plural, one {# soubor} few {# soubory} other {# souborů}})",
     "applying": "Aplikuje se...",
     "reprocess-label": "Zpracovat znovu ihned",

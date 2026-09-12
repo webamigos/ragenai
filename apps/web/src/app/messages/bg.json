@@ -1253,6 +1253,7 @@
     "status-uploading": "Качва се",
     "score-rag": "RAG резултат",
     "optimize-rag": "Оптимизиране за RAG",
+    "change-pii-policy": "Промяна на политиката за ЛД",
     "sort-file-name": "Име на файла",
     "sort-file-size": "Размер на файла",
     "sort-created": "Дата на добавяне",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Смяна на политиката за PII",
     "description": "Една политика за всички избрани файлове: {count, plural, one {# файл} other {# файла}}.",
+    "description-single": "Промяна на политиката за „{fileName}“. Вече индексираният текст остава такъв, какъвто е, докато файлът не бъде обработен отново.",
     "apply": "Приложи ({count, plural, one {# файл} other {# файла}})",
     "applying": "Прилагане...",
     "reprocess-label": "Обработи отново веднага",

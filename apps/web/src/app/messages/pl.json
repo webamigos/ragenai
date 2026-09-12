@@ -1253,6 +1253,7 @@
     "status-uploading": "Wysyłanie",
     "score-rag": "Oceń dla RAG",
     "optimize-rag": "Optymalizuj dla RAG",
+    "change-pii-policy": "Zmień politykę PII",
     "sort-file-name": "Nazwa pliku",
     "sort-file-size": "Rozmiar",
     "sort-created": "Data dodania",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Zmień politykę PII",
     "description": "Jedna polityka dla wszystkich zaznaczonych plików: {count, plural, one {# plik} few {# pliki} many {# plików} other {# pliki}}.",
+    "description-single": "Zmiana polityki dla „{fileName}”. Tekst już zaindeksowany zostaje bez zmian, dopóki plik nie zostanie przetworzony ponownie.",
     "apply": "Zastosuj ({count, plural, one {# plik} few {# pliki} many {# plików} other {# pliki}})",
     "applying": "Stosowanie...",
     "reprocess-label": "Przetwórz ponownie od razu",

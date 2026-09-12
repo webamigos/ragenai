@@ -1253,6 +1253,7 @@
     "status-uploading": "Uploader",
     "score-rag": "RAG-score",
     "optimize-rag": "Optimér til RAG",
+    "change-pii-policy": "Skift persondatapolitik",
     "sort-file-name": "Filnavn",
     "sort-file-size": "Filstørrelse",
     "sort-created": "Tilføjelsesdato",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Skift PII-politik",
     "description": "Én politik for alle de valgte filer: {count, plural, one {# fil} other {# filer}}.",
+    "description-single": "Ændring af politikken for “{fileName}”. Den allerede indekserede tekst forbliver som den er, indtil filen behandles igen.",
     "apply": "Anvend ({count, plural, one {# fil} other {# filer}})",
     "applying": "Anvender...",
     "reprocess-label": "Behandl igen nu",

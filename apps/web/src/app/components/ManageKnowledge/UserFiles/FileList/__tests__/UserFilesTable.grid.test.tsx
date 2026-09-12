@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { NextIntlClientProvider } from 'next-intl';
 
@@ -77,6 +78,7 @@ const messages = {
     move: 'Move',
     share: 'Share',
     'score-rag': 'Score for RAG',
+    'change-pii-policy': 'Change PII policy',
   },
   'bulk-action-bar': {
     'select-all': 'Select all',
@@ -90,6 +92,12 @@ const messages = {
     'toxic-only-label': 'Sensitive data',
     'strict-label': 'All personal data',
     'inline-edit-tooltip': 'Changing the policy does not re-embed.',
+    'badge-none': 'No masking',
+    'badge-toxic-only': 'Sensitive data',
+    'badge-strict': 'All personal data',
+    'tag-none': 'None',
+    'tag-toxic-only': 'Sensitive',
+    'tag-strict': 'All',
   },
   'document-optimizer': {
     'badge-label': 'RAG: {score}',
@@ -370,5 +378,45 @@ describe('UserFilesTable — dragging a row onto a folder', () => {
     expect(dataTransfer.getData('application/x-ragen-file')).toBe(
       '["file-1","file-2"]',
     );
+  });
+});
+
+/**
+ * Changing a file's PII policy is a deliberate step behind a dialog, the way
+ * Delete is — not a select sitting in the row.
+ */
+describe('UserFilesTable — the PII policy column', () => {
+  it('reads the policy rather than offering to change it', () => {
+    const { container } = renderTable({ canManageOrg: true });
+
+    expect(container.querySelector('tbody select')).toBeNull();
+    expect(container.querySelector('tbody [role="combobox"]')).toBeNull();
+  });
+
+  it('puts the change behind the row menu, for someone who may make it', async () => {
+    const user = userEvent.setup();
+    const onChangeRowPolicy = vi.fn();
+    renderTable({ canManageOrg: true, onChangeRowPolicy });
+
+    await user.click(screen.getAllByRole('button', { name: 'Actions' })[0]);
+    await user.click(
+      await screen.findByRole('menuitem', { name: /Change PII policy/i }),
+    );
+
+    expect(onChangeRowPolicy).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the item out entirely when no handler is given', async () => {
+    // The wrapper withholds the handler from anyone who may not change the
+    // policy, so the item is absent rather than present and disabled — a
+    // disabled item in a menu is a promise you cannot keep.
+    const user = userEvent.setup();
+    renderTable({ canManageOrg: true });
+
+    await user.click(screen.getAllByRole('button', { name: 'Actions' })[0]);
+
+    expect(
+      screen.queryByRole('menuitem', { name: /Change PII policy/i }),
+    ).toBeNull();
   });
 });

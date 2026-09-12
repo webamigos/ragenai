@@ -1253,6 +1253,7 @@
     "status-uploading": "Caricamento in corso",
     "score-rag": "Punteggio RAG",
     "optimize-rag": "Ottimizza per RAG",
+    "change-pii-policy": "Modifica i criteri sui dati personali",
     "sort-file-name": "Nome del file",
     "sort-file-size": "Dimensione del file",
     "sort-created": "Data di aggiunta",
@@ -1391,6 +1392,7 @@
   "bulk-policy-modal": {
     "title": "Cambia criterio PII",
     "description": "Un solo criterio per tutti i file selezionati: {count, plural, one {# file} other {# file}}.",
+    "description-single": "Modifica dei criteri per “{fileName}”. Il testo già indicizzato resta invariato finché il file non viene rielaborato.",
     "apply": "Applica ({count, plural, one {# file} other {# file}})",
     "applying": "Applicazione...",
     "reprocess-label": "Rielabora ora",
