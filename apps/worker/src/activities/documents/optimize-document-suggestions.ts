@@ -113,10 +113,7 @@ function applySuggestion(
 // ── Main activity ──────────────────────────────────────────────────────────
 
 export type OptimizationJobStatus =
-  | 'pending'
-  | 'processing'
-  | 'done'
-  | 'failed';
+  'pending' | 'processing' | 'done' | 'failed';
 
 export type OptimizationSuggestion = {
   id: string;

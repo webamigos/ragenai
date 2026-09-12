@@ -2,7 +2,11 @@ import { readFile } from 'fs/promises';
 
 import { type SourceRegion } from '@ragenai/rag-core';
 
-import { DOCLING_URL } from '../consts';
+import { DOCLING_URL, TABLE_CHUNKS_ENABLED } from '../consts';
+import {
+  exciseTables,
+  type ExcisionOutcome,
+} from './text-splitters/table-chunks';
 import { logger } from './logger';
 
 type DoclingConvertResponse = {
@@ -46,6 +50,12 @@ export type DoclingTable = {
   cells: DoclingTableCell[];
   /** Docling's own caption, when it found one. Often absent. */
   caption?: string;
+  /**
+   * The heading stack above the table in the markdown, ADR-17's
+   * `section_path`. Computed during excision, while the original string is
+   * still intact, and absent when nothing was excised.
+   */
+  sectionPath?: string;
   /**
    * The page this table sits on, 1-based.
    *
@@ -148,6 +158,15 @@ export type DoclingConversion = {
   tables: DoclingTable[];
   /** How many elements carry each label. Plumbed; nothing reads it yet. */
   elementLabels: DoclingElementLabels;
+  /**
+   * Whether the tables were taken out of the markdown, and why not when they
+   * were not.
+   *
+   * The splitter emits table chunks **only when this says `applied`**. Emitting
+   * them after a refusal would leave the same figures in the index twice: once
+   * in the prose chunk that still contains the table, once in the table chunk.
+   */
+  tableExcision: ExcisionOutcome;
 };
 
 /** Docling's box: named sides in absolute points, plus the origin they mean. */
@@ -590,20 +609,47 @@ export const convertWithDocling = async (
     throw new Error('Docling returned empty markdown content');
   }
 
+  const parsed = parseJsonContent(result.document?.json_content);
+  const rawTables = readTables(parsed);
+  const elementLabels = readElementLabels(parsed);
+
+  // **Excision happens here, and nowhere else.** It runs after `md_content` is
+  // read and before the anchors are built, so the anchors and the splitter
+  // both see the post-excision string. Building it next to the splitter — the
+  // natural place — would anchor the pre-excision markdown and cut the
+  // post-excision one, misattributing the page of every element after the
+  // first table. Nothing in the repo would catch that.
+  //
+  // Off by default: ADR-20 pauses chunking changes until a number exists.
+  const tableExcision: ExcisionOutcome = TABLE_CHUNKS_ENABLED
+    ? exciseTables(markdown, rawTables)
+    : {
+        markdown,
+        applied: false,
+        refusal: 'no-tables',
+        candidateCount: 0,
+        sectionPaths: [],
+      };
+  const excisedMarkdown = tableExcision.markdown;
+
+  // The heading stack above each table, computed while the original markdown
+  // was still intact, carried onto the table it belongs to.
+  const tables = rawTables.map((table, index) => {
+    const sectionPath = tableExcision.sectionPaths[index];
+    return sectionPath !== undefined ? { ...table, sectionPath } : table;
+  });
+
   const pageCount = readPageCount(result.document?.json_content);
   const pageAnchors = buildTextElementAnchors(
-    markdown,
+    excisedMarkdown,
     result.document?.json_content,
   );
-  const parsed = parseJsonContent(result.document?.json_content);
-  const tables = readTables(parsed);
-  const elementLabels = readElementLabels(parsed);
 
   logger.info(
     {
       fileName,
       status: result.status,
-      markdownLength: markdown.length,
+      markdownLength: excisedMarkdown.length,
       pageCount,
       pageAnchors: pageAnchors.length,
       // How many of those carry a box, so a parser change that stops
@@ -612,11 +658,27 @@ export const convertWithDocling = async (
       anchorsWithRegion: pageAnchors.filter((a) => a.region !== undefined)
         .length,
       tables: tables.length,
+      // Logged once per ingest because declaring the variable in
+      // `validateEnvVars.ts` still does not catch a misspelling in the
+      // *deployment*: `FEATURE_FLAG_TABLE_CHUNK` is simply absent, not
+      // invalid, and a Phase C run that reproduced the baseline would read as
+      // "table chunks do not help" rather than "the flag was never on".
+      tableChunksEnabled: TABLE_CHUNKS_ENABLED,
+      tableExcision: tableExcision.applied
+        ? 'applied'
+        : (tableExcision.refusal ?? 'not-attempted'),
     },
     'Docling conversion completed',
   );
 
-  return { markdown, pageCount, pageAnchors, tables, elementLabels };
+  return {
+    markdown: excisedMarkdown,
+    pageCount,
+    pageAnchors,
+    tables,
+    elementLabels,
+    tableExcision,
+  };
 };
 
 /**

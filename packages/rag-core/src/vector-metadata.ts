@@ -108,7 +108,18 @@ export type VectorStoreDocumentMetadata = {
   status: 'active' | 'archived';
   embedding_model: string;
   total_chunks: number;
-  chunk_type?: 'summary';
+  /**
+   * What kind of chunk this is, when it is not ordinary prose.
+   *
+   * `'summary'` is ADR-16's synthetic per-document chunk. `'table'` is a table
+   * Docling parsed, lifted out of the markdown into a chunk that repeats its
+   * own header (ADR-43). Absent on everything else, which is most chunks.
+   *
+   * Nothing branches on `'table'` at read time: the only reader compares
+   * against `'summary'`, so widening the union changes no behaviour beyond
+   * making the value describable.
+   */
+  chunk_type?: 'summary' | 'table';
   pii_policy?: 'NONE' | 'TOXIC_ONLY' | 'STRICT';
   pii_alert?: boolean;
   pii_detected_entities?: string[];

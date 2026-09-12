@@ -36,12 +36,18 @@ export const loadDocling = async ({
 
   const filePath = await ensureLocalFile({ orgId, fileId, fileName });
 
-  const { markdown, pageCount, pageAnchors, tables, elementLabels } =
-    await convertWithDocling(filePath, fileName, {
-      doOcr: true,
-      tableMode: 'accurate',
-      imageExportMode: 'placeholder',
-    });
+  const {
+    markdown,
+    pageCount,
+    pageAnchors,
+    tables,
+    elementLabels,
+    tableExcision,
+  } = await convertWithDocling(filePath, fileName, {
+    doOcr: true,
+    tableMode: 'accurate',
+    imageExportMode: 'placeholder',
+  });
 
   return [
     {
@@ -64,7 +70,13 @@ export const loadDocling = async ({
         // `doclingPageAnchors` already established. Spread conditionally, so a
         // document with no tables carries no key at all and its chunks are
         // byte-identical to before this existed.
-        ...(tables.length > 0 ? { doclingTables: tables } : {}),
+        // Only when the tables actually left the markdown. After a refusal
+        // they are still in the prose, and emitting table chunks as well would
+        // index the same figures twice — ADR-15's dedupe is an exact string
+        // match and would not collapse them.
+        ...(tableExcision.applied && tables.length > 0
+          ? { doclingTables: tables }
+          : {}),
         ...(Object.keys(elementLabels).length > 0
           ? { doclingElementLabels: elementLabels }
           : {}),
