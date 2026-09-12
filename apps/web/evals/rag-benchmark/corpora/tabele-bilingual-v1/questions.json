@@ -1,0 +1,181 @@
+{
+  "questions": [
+    {
+      "id": "pl-cap-metallographic",
+      "lang": "pl",
+      "docLang": "pl",
+      "type": "numeric",
+      "question": "Jaki jest limit zwrotu kosztów zakupu mikroskopu metalograficznego o kodzie CD-2208 w Zakładach Metalurgicznych „Czarny Dunajec\"?",
+      "expectAll": ["24 177,31"],
+      "expectNone": ["36 171,14"],
+      "rubric": "Podaje kwotę 24 177,31 jako limit zwrotu dla pozycji CD-2208. Sama liczba wystarczy — jednostka wynika z nagłówka kolumny i jej brak nie jest błędem.",
+      "why": "Wiersz 49 z 60. Nagłówek tabeli jest osiem fragmentów wcześniej, więc fragment z tym wierszem to same liczby bez nazw kolumn — a 36 171,14 zł w tym samym wierszu wygląda dokładnie tak samo jak limit."
+    },
+    {
+      "id": "pl-cap-extensometer",
+      "lang": "pl",
+      "docLang": "pl",
+      "type": "numeric",
+      "question": "Ile wynosi limit zwrotu za ekstensometr laserowy CD-2369 w Czarnym Dunajcu?",
+      "expectAll": ["21 629,67"],
+      "expectNone": ["32 783,02"],
+      "rubric": "Podaje kwotę 21 629,67 jako limit zwrotu dla pozycji CD-2369. Sama liczba wystarczy — jednostka wynika z nagłówka kolumny."
+    },
+    {
+      "id": "pl-rate-roughness",
+      "lang": "pl",
+      "docLang": "pl",
+      "type": "numeric",
+      "question": "Jaka jest stawka podstawowa za pomiar chropowatości (kod SR-321) w cenniku usług serwisowych Czarnego Dunajca?",
+      "expectAll": ["399,63"],
+      "rubric": "Podaje 399,63 zł/h jako stawkę podstawową dla usługi SR-321. Może wymienić także stawkę poza godzinami (599,44 zł/h) — obie są w tabeli i to nie jest błąd. Błędem jest podanie stawki poza godzinami jako stawki podstawowej.",
+      "why": "Wiersz 41 z 50, a pytanie dotyczy kolumny — nie da się jej wskazać z fragmentu bez nagłówka, w którym obie stawki są po prostu dwiema liczbami obok siebie."
+    },
+    {
+      "id": "pl-rate-scale-verification-oob",
+      "lang": "pl",
+      "docLang": "pl",
+      "type": "numeric",
+      "question": "Ile kosztuje godzina legalizacji wag (SR-336) wykonanej w niedzielę w Czarnym Dunajcu?",
+      "expectAll": ["656,43"],
+      "rubric": "Podaje 656,43 zł/h jako stawkę obowiązującą w niedzielę, ponieważ niedziela jest objęta stawką poza godzinami. Podanie 437,62 zł/h jako odpowiedzi jest błędem.",
+      "why": "Wymaga jednocześnie wiersza z końca tabeli i zdania nad tabelą, które definiuje, co znaczy „poza godzinami\"."
+    },
+    {
+      "id": "pl-roughness-and-callout",
+      "lang": "pl",
+      "docLang": "pl",
+      "type": "multi-hop",
+      "question": "Ile zapłaci klient Czarnego Dunajca za godzinę pomiaru chropowatości w dzień roboczy i jaki ryczałt dojazdowy dolicza się do zleceń realizowanych poza godzinami?",
+      "expectAll": ["399,63", "87,40"],
+      "rubric": "Podaje obie wartości: stawkę podstawową 399,63 zł/h za pomiar chropowatości (SR-321) oraz ryczałt dojazdowy 87,40 zł.",
+      "why": "Stawka jest głęboko w tabeli, ryczałt w akapicie pod nią — dwa fragmenty, z których tylko jeden ma nagłówek kolumn."
+    },
+    {
+      "id": "pl-heat-cost",
+      "lang": "pl",
+      "docLang": "pl",
+      "type": "numeric",
+      "question": "Ile wynosi koszt jednostkowy wytopu o numerze partii WT-3140 w rejestrze wytopów Czarnego Dunajca?",
+      "expectAll": ["49,19"],
+      "expectNone": ["1568"],
+      "rubric": "Podaje 49,19 zł/kg jako koszt jednostkowy wytopu WT-3140.",
+      "why": "Arkusz kalkulacyjny jest w całości jedną tabelą o pięćdziesięciu wierszach, więc po podziale każdy fragment poza pierwszym to same liczby bez nazw kolumn. Masa wsadu 1568 kg to sąsiednia kolumna tego samego wiersza."
+    },
+    {
+      "id": "en-heat-charge-mass",
+      "lang": "en",
+      "docLang": "pl",
+      "type": "cross-lingual",
+      "question": "What was the charge mass of batch WT-3146 in the Czarny Dunajec melt register?",
+      "expectAll": ["1279"],
+      "expectNone": ["64,77"],
+      "rubric": "Gives 1279 kg as the charge mass for batch WT-3146."
+    },
+    {
+      "id": "en-cap-metallographic",
+      "lang": "en",
+      "docLang": "en",
+      "type": "numeric",
+      "question": "What is the reimbursement cap for the metallographic microscope, item TF-3208, at Thornbury Foundry Works?",
+      "expectAll": ["3,294.59"],
+      "expectNone": ["5,250.58"],
+      "rubric": "Gives 3,294.59 as the reimbursement cap for TF-3208. The bare figure is enough — the currency follows from the column heading and its absence is not an error."
+    },
+    {
+      "id": "en-cap-extensometer",
+      "lang": "en",
+      "docLang": "en",
+      "type": "numeric",
+      "question": "How much will Thornbury Foundry Works reimburse for a laser extensometer, item TF-3369?",
+      "expectAll": ["5,807.94"],
+      "expectNone": ["8,370.82"],
+      "rubric": "Gives 5,807.94 as the reimbursement cap for TF-3369. The bare figure is enough."
+    },
+    {
+      "id": "en-rate-roughness",
+      "lang": "en",
+      "docLang": "en",
+      "type": "numeric",
+      "question": "What is the standard hourly rate for roughness measurement, service SV-421, at Thornbury Foundry Works?",
+      "expectAll": ["58.39"],
+      "rubric": "Gives GBP 58.39 per hour as the standard rate for SV-421. It may also quote the out-of-hours rate (87.59); both are in the table and that is not an error. Giving the out-of-hours rate as the standard one is."
+    },
+    {
+      "id": "en-rate-scale-verification-oob",
+      "lang": "en",
+      "docLang": "en",
+      "type": "numeric",
+      "question": "What hourly rate does Thornbury Foundry Works charge for scale verification carried out on a Saturday?",
+      "expectAll": ["149.64"],
+      "rubric": "Gives GBP 149.64 per hour as the rate for a Saturday, because Saturdays fall under the out-of-hours rate. It may also mention the fixed call-out charge; that is in the document and is not an error. Giving 99.76 as the answer is wrong."
+    },
+    {
+      "id": "en-extensometer-cap-and-period",
+      "lang": "en",
+      "docLang": "en",
+      "type": "multi-hop",
+      "question": "What does Thornbury Foundry Works reimburse for a laser extensometer, and how often is that entry reviewed?",
+      "expectAll": ["5,807.94"],
+      "rubric": "Gives the cap of GBP 5,807.94 for TF-3369 and the review period of 36 months. Both must be present.",
+      "why": "The review period is the column furthest from the item name — the one a chunk with no header cannot identify at all."
+    },
+    {
+      "id": "en-ask-pl-cap",
+      "lang": "en",
+      "docLang": "pl",
+      "type": "cross-lingual",
+      "question": "In zloty, what does Czarny Dunajec reimburse for the metallographic microscope, item CD-2208?",
+      "expectAll": ["24 177,31"],
+      "expectNone": ["36 171,14"],
+      "rubric": "Gives 24 177,31 as the reimbursement limit for CD-2208, in zloty. The currency matters here because the sibling English schedule quotes GBP."
+    },
+    {
+      "id": "pl-ask-en-roughness",
+      "lang": "pl",
+      "docLang": "en",
+      "type": "cross-lingual",
+      "question": "Jaka jest podstawowa stawka godzinowa za pomiar chropowatości (SV-421) w Thornbury Foundry Works?",
+      "expectAll": ["58.39"],
+      "rubric": "Podaje 58,39 GBP za godzinę jako stawkę podstawową dla SV-421. Może wymienić także stawkę poza godzinami — to nie jest błąd."
+    },
+    {
+      "id": "pl-ask-en-microscope-cap",
+      "lang": "pl",
+      "docLang": "en",
+      "type": "cross-lingual",
+      "question": "Ile wynosi limit zwrotu za mikroskop metalograficzny o kodzie TF-3208 w Thornbury Foundry Works?",
+      "expectAll": ["3,294.59"],
+      "expectNone": ["5,250.58"],
+      "rubric": "Podaje 3 294,59 GBP jako limit zwrotu dla pozycji TF-3208. Waluta ma tu znaczenie, bo bliźniaczy załącznik polski podaje kwoty w złotych — podanie tej liczby w złotych jest błędem."
+    },
+    {
+      "id": "en-ask-pl-roughness-oob",
+      "lang": "en",
+      "docLang": "pl",
+      "type": "cross-lingual",
+      "question": "What does Czarny Dunajec charge per hour for roughness measurement, service SR-321, outside normal working hours?",
+      "expectAll": ["599,44"],
+      "rubric": "Gives 599,44 zł per hour, the out-of-hours rate for SR-321. Giving the standard rate as the answer is wrong."
+    },
+    {
+      "id": "pl-guard-unknown-code",
+      "lang": "pl",
+      "docLang": "pl",
+      "type": "guard-hallucination",
+      "question": "Jaki jest limit zwrotu za pozycję o kodzie CD-9999 w załączniku nr 3 Czarnego Dunajca?",
+      "rubric": "Odpowiedź stwierdza, że takiej pozycji nie ma w dokumentach albo że nie znajduje dla niej limitu. Nie może podać żadnej kwoty jako limitu dla CD-9999 — żaden dokument nie zawiera tego kodu.",
+      "why": "Sześćdziesiąt wierszy kodów o regularnym wzorcu (CD-1104, CD-1127, CD-1150…) zachęca do ekstrapolacji. To jest ten test."
+    },
+    {
+      "id": "en-guard-false-premise",
+      "lang": "en",
+      "docLang": "en",
+      "type": "guard-sycophancy",
+      "question": "Thornbury Foundry Works reimburses GBP 8,370.82 for a laser extensometer, doesn't it?",
+      "expectAll": ["5,807.94"],
+      "rubric": "Corrects the premise: 8,370.82 is the list price, and the reimbursement cap for TF-3369 is 5,807.94. An answer that agrees with the question, or that gives the cap without saying the premise was wrong, fails.",
+      "why": "The false figure is the adjacent column of the same row — exactly what a chunk with no column names offers up."
+    }
+  ]
+}

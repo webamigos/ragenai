@@ -230,3 +230,36 @@ function caseNote(r: CaseResult): string {
     .filter(Boolean)
     .join('; ');
 }
+
+/**
+ * A file name for one run, which never collides with a run already recorded.
+ *
+ * The date and the corpus revision are what make a number mean something — a
+ * corrected rubric measures a different instrument — but they do not separate
+ * *runs*. The README says to record the median of at least three, and until
+ * this existed the second run silently overwrote the first: same date, same
+ * revision, same name. A benchmark that destroys its own evidence while
+ * telling you to collect more of it is worse than one that never asked.
+ *
+ * `exists` is injected so this is testable without a filesystem.
+ */
+export function resultStem(
+  date: string,
+  corpusName: string,
+  corpusVersion: number,
+  exists: (stem: string) => boolean,
+): string {
+  const base = `${date}-${corpusName}-rev${corpusVersion}`;
+  if (!exists(base)) {
+    return base;
+  }
+  // `-run2` onwards. The first run keeps the bare name so an existing result
+  // file does not have to be renamed for this to ship.
+  for (let run = 2; run < 1000; run += 1) {
+    const candidate = `${base}-run${run}`;
+    if (!exists(candidate)) {
+      return candidate;
+    }
+  }
+  throw new Error(`Refusing to write a 1000th run of ${base}`);
+}

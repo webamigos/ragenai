@@ -1,0 +1,43 @@
+{
+  "name": "tabele-bilingual-v1",
+  "version": 1,
+  "license": "CC0-1.0",
+  "languages": ["pl", "en"],
+  "description": "Five invented documents from two fictional metalworks — three Polish (Zakłady Metalurgiczne „Czarny Dunajec\") and two English (Thornbury Foundry Works Ltd) — whose content is almost entirely wide tables of sixty and fifty rows. Each document is ten chunks, so the header chunk is not simply retrieved alongside the row being asked about: every question targets a row in the last third of its table, where a character splitter leaves numbers with no column names. The two sets are parallel in structure and different in every figure, so an answer taken from the wrong document is visibly wrong rather than plausibly right.",
+  "whyInvented": "kolej-bilingual-v1 cannot see the failure this corpus exists for. Two of its eight documents contain a table; each is five rows in a document of roughly 1.6 KB, against a chunk budget of 800–2500 characters — so those tables are never split and the header is never lost. A pass rate that did not move there would be evidence of nothing at all. Every figure here is made up, for the same reason as in that corpus: a model may already know a real number, so a correct answer would prove recall rather than retrieval. `build-corpus.mjs` generates them from a fixed seed and refuses to cite a figure whose digits also occur elsewhere in the same document.",
+  "documents": [
+    {
+      "file": "docs/pl-01-limity-sprzetowe.md",
+      "lang": "pl",
+      "mimeType": "text/markdown",
+      "title": "Załącznik nr 3 — limity zwrotu kosztów sprzętu — Czarny Dunajec"
+    },
+    {
+      "file": "docs/pl-02-stawki-serwisowe.md",
+      "lang": "pl",
+      "mimeType": "text/markdown",
+      "title": "Cennik usług serwisowych — Czarny Dunajec"
+    },
+    {
+      "file": "docs/pl-03-rejestr-wytopow.xlsx",
+      "lang": "pl",
+      "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "title": "Rejestr wytopów, marzec 2026 — Czarny Dunajec"
+    },
+    {
+      "file": "docs/en-01-equipment-limits.md",
+      "lang": "en",
+      "mimeType": "text/markdown",
+      "title": "Schedule 3 — reimbursement caps for workshop equipment — Thornbury"
+    },
+    {
+      "file": "docs/en-02-service-rates.md",
+      "lang": "en",
+      "mimeType": "text/markdown",
+      "title": "Price list for subcontracted services — Thornbury"
+    }
+  ],
+  "changelog": [
+    "v1 (2026-09-12) — built for the tables spec's Phase A. A first draft with 22-row tables measured nothing: each document was six chunks, retrieval fetches four, so the header chunk came along with the row and the failure never occurred. Sixty-row tables are what make the header genuinely absent from the chunk that answers the question. The spreadsheet is here because Docling routes CSV and XLSX past the ADR-17 row-group splitter, so a flag that changes table chunking changes a spreadsheet completely rather than marginally."
+  ]
+}
