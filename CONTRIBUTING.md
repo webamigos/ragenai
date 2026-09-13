@@ -75,8 +75,11 @@ guard (`src/libs/db/tenant-scope-guard.ts`, [ADR-23](docs/adrs/23-tenant-scope-g
 that logs when you forget, but it does not block the query — don't rely on it
 instead of writing the `where` clause correctly.
 
-**3. Don't hard-code user-facing strings.** The UI ships in English and Polish
-via `next-intl`. Add keys to `src/app/messages/{en,pl}.json` and use `useT()` /
+**3. Don't hard-code user-facing strings.** The UI ships in fifteen languages —
+see the `locales` list in `apps/web/src/app/config.ts` for the authoritative
+set — via `next-intl`. Add the key, with its English text, to every file under
+`src/app/messages/` (there is no key-parity check or automatic fallback yet, so
+a locale missing a key renders the raw key string), then use `useT()` /
 `getTranslations()`. Import `Link`, `redirect`, `usePathname` and `useRouter`
 from `@/i18n/routing`, never from `next/link` or `next/navigation`.
 

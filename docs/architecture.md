@@ -182,7 +182,7 @@ The two inside `apps/web` are intentionally split across separate routes and nav
 
 The sidebar user-menu dropdown exposes three shortcuts into the admin tools (AI Usage, Disk Usage, Audit Logs) so org admins don't have to open the Organization section to reach them.
 
-**Adding a user-level settings page:** create the page under `src/app/[locale]/(panel)/settings/<id>/page.tsx`, add the translation key under `settings-page.nav` in `src/app/messages/{en,pl}.json`, then append one entry to `settingsRegistry`. The registry handles role gating, sort order, and active-link highlighting automatically.
+**Adding a user-level settings page:** create the page under `src/app/[locale]/(panel)/settings/<id>/page.tsx`, add the translation key under `settings-page.nav` to every locale file in `src/app/messages/` (see `apps/web/src/app/config.ts` for the full list), then append one entry to `settingsRegistry`. The registry handles role gating, sort order, and active-link highlighting automatically.
 
 **Adding an org-admin page:** create it under `src/app/[locale]/(panel)/organization/<id>/page.tsx` and add a corresponding entry to the `navItems` array in `OrganizationNav`. The `/organization` layout handles access control for you.
 
