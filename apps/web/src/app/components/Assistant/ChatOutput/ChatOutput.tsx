@@ -183,7 +183,30 @@ type Props = {
   isLoading: boolean;
   loadingMessage: string;
   streamedMessage: StreamedMessageDto | null;
+  /**
+   * Read-only chrome: no rate, no regenerate, no voice.
+   *
+   * True on the public routes *and* on the authenticated read-only thread
+   * view, because both want the same chrome. It says nothing about who the
+   * reader is — see `canOpenSources`.
+   */
   isPublicAccess?: boolean;
+  /**
+   * Whether a source card can be opened into the document it cites.
+   *
+   * A separate question from `isPublicAccess`, because the two read-only
+   * surfaces differ in the one way that matters here: the panel's read-only
+   * thread sits behind the `(panel)` layout, which resolves a session and
+   * redirects to sign-in without one, so `/api/files/{id}` works for that
+   * reader. A `/public` guest has no session and would open the panel onto
+   * "Failed to load file."
+   *
+   * Defaults to `!isPublicAccess`, which is right for three of the four call
+   * sites. The read-only thread view passes it explicitly — the default is
+   * deliberately the conservative one, so a new public surface that forgets
+   * this prop hides a working feature rather than offering a broken card.
+   */
+  canOpenSources?: boolean;
   onMessagePlayed?: (messageId: string) => void;
   voiceId?: string;
   /**
@@ -271,20 +294,20 @@ const MessageBubbleContent = ({
  */
 const AssistantAnswer = ({
   message,
-  isPublicAccess,
+  canOpenSources,
 }: {
   message: MessageDto;
   /**
-   * A read-only view: a public share, a guest thread, or a shared thread
-   * opened read-only.
+   * Whether this reader can open a cited document.
    *
-   * The source cards stay, because what the answer was grounded in is worth
-   * showing to anyone who can read the answer. What goes is the *control*:
-   * `/api/files/{id}` needs a session and the file's own access check, so on a
-   * public route the panel would open onto "Failed to load file." A card that
-   * clicks into nothing is worse than one that does not invite the click.
+   * The source cards stay either way, because what the answer was grounded in
+   * is worth showing to anyone who can read the answer. What goes when this is
+   * false is the *control*: `/api/files/{id}` needs a session and the file's
+   * own access check, so a guest would open the panel onto "Failed to load
+   * file." A card that clicks into nothing is worse than one that does not
+   * invite the click.
    */
-  isPublicAccess: boolean;
+  canOpenSources: boolean;
 }) => {
   const liveRetrieval = useAppSelector(
     (state) => state.assistant.retrievalByMessage[message.id],
@@ -315,7 +338,7 @@ const AssistantAnswer = ({
         <SourcesBlock
           retrieval={retrieval}
           idPrefix={anchorPrefix}
-          onActivate={isPublicAccess ? undefined : setOpenSource}
+          onActivate={canOpenSources ? setOpenSource : undefined}
         />
       ) : null}
       <CitedSourcePreview
@@ -388,6 +411,10 @@ export const ChatOutput = ({
   loadingMessage = '',
   streamedMessage,
   isPublicAccess = false,
+  // Defaults to "the chrome decides", which is right everywhere except the
+  // authenticated read-only thread view — the one surface that is read-only
+  // *and* has a session.
+  canOpenSources = !isPublicAccess,
   voiceId,
   threadId,
   onApproveToolCall,
@@ -543,7 +570,7 @@ export const ChatOutput = ({
                   {message.role === 'ASSISTANT' ? (
                     <AssistantAnswer
                       message={message}
-                      isPublicAccess={isPublicAccess}
+                      canOpenSources={canOpenSources}
                     />
                   ) : (
                     <MessageBubbleContent
