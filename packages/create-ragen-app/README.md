@@ -44,7 +44,7 @@ requirement".
 This package is the only thing that exercises the first-run path.
 `.github/workflows/installer.yml` runs it on pushes to `main` and on pull
 requests from this repository: it packs the package, installs the tarball,
-scaffolds from the branch under review and asserts the result is configured.
+scaffolds from the commit under review and asserts the result is configured.
 That catches a broken installer, but only for the cases the assertions cover —
 `AGENTS.md`'s Post-Task Workflow still asks for an update here in the same PR,
 and for the PR description to say so.
@@ -69,7 +69,7 @@ about — has no textual signal, which is why the rule above is a rule.
 
 | Flag              | Effect                                             |
 | ----------------- | --------------------------------------------------- |
-| `--ref=<branch>`  | Clone a branch/tag other than `main`                 |
+| `--ref=<ref>`     | Clone a branch, tag or commit SHA other than `main`   |
 | `--skip-docker`   | Write the `.env.local` files but don't start Docker  |
 | `--skip-install`  | Skip `npm install` / Prisma / seed                   |
 | `--yes`           | Accept every default without prompting               |
@@ -129,6 +129,13 @@ Three details, each of which this file previously got wrong:
 `--ref` is the part people forget: the CLI clones the repository from GitHub,
 so testing a change to the *app* needs that branch pushed. Without it you are
 testing new installer code against old repository content.
+
+It takes anything GitHub's tarball endpoint resolves — a branch, a tag, or a
+full commit SHA. The `Installer` workflow passes the **commit**, because a
+branch can be deleted by the merge while the job is still running and the
+endpoint then 404s on a name that resolved seconds earlier. Prefer a SHA
+anywhere the ref is chosen by a machine rather than typed by hand. See
+[the lesson](../../docs/lessons/a-ci-job-that-clones-a-branch-races-the-merge.md).
 
 `prepare` runs `clean` before `build` deliberately. `files` publishes `dist`
 wholesale and `tsc` does not remove the output of a source file that no

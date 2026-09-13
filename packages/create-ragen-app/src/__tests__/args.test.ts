@@ -19,6 +19,13 @@ describe('parseArgs', () => {
     expect(parseArgs(['--ref=v1.2.0']).ref).toBe('v1.2.0');
   });
 
+  it('reads a full commit SHA as a ref, which is what CI passes', () => {
+    // The installer workflow scaffolds from the commit rather than the branch
+    // name, because the branch can be deleted by the merge while the job runs.
+    const sha = 'f35087e92600d4e1f8de7e9b149fac27d8be0007';
+    expect(parseArgs([`--ref=${sha}`]).ref).toBe(sha);
+  });
+
   it('defaults every flag to false', () => {
     const args = parseArgs([]);
     expect(args.skipDocker).toBe(false);

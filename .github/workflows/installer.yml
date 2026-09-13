@@ -65,18 +65,27 @@ jobs:
           npm install --prefix /tmp/installer /tmp/pack/create-ragen-app-*.tgz \
             --no-audit --no-fund
 
-      # --ref is the part that makes this test the *branch*: the CLI clones
+      # --ref is the part that makes this test *this change*: the CLI clones
       # from GitHub, so without it the installer under test would scaffold
       # from main and the app-side half of any change would be missing.
-      - name: Scaffold an install from this branch
+      #
+      # It is the commit, never the branch name. A branch is a moving label
+      # that can be gone before the job reads it: merging a pull request with
+      # auto-delete on removes the head branch, and the tarball endpoint then
+      # answers 404 for a name that resolved a minute earlier. That reports as
+      # a red required check on a pull request whose content is fine. A commit
+      # SHA cannot move, and GitHub keeps a pull request's head commit
+      # reachable through `refs/pull/<n>/head` after the branch is deleted, so
+      # the tarball still resolves post-merge. giget passes `#<ref>` straight
+      # into `/repos/<owner>/<repo>/tarball/<ref>`, which takes a full SHA.
+      - name: Scaffold an install from this commit
         # The ref goes through the environment rather than into the script
-        # body: a branch name is chosen by whoever opened the pull request,
-        # and interpolating it directly would let one run shell here.
+        # body, as every interpolated event value should.
         env:
-          BRANCH_REF: ${{ github.head_ref || github.ref_name }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           /tmp/installer/node_modules/.bin/create-ragen-app /tmp/ragen-smoke \
-            --ref="$BRANCH_REF" \
+            --ref="$COMMIT_SHA" \
             --provider=openai \
             --skip-docker \
             --skip-install
