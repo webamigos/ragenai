@@ -303,6 +303,35 @@ describe('Breadcrumbs — as the page title', () => {
     );
   });
 
+  /*
+    Below `lg` the folder rail is hidden, so the trail is the only way back
+    out of a folder. A heading that is only a heading would make a failed
+    fetch a dead end.
+  */
+  it('leaves the root clickable when the trail never arrives', async () => {
+    const user = userEvent.setup();
+    mockGetFolderBreadcrumbs.mockRejectedValue(new Error('Network error'));
+    const { onNavigate } = renderTitle('f2');
+
+    const root = await screen.findByRole('button', { name: /All Files/ });
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'All Files',
+    );
+
+    await user.click(root);
+    expect(onNavigate).toHaveBeenCalledWith(null);
+  });
+
+  it('does not offer the root as a link while the trail is still loading', () => {
+    mockGetFolderBreadcrumbs.mockReturnValue(new Promise(() => {}));
+    renderTitle('f2');
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'All Files',
+    );
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
   it('leaves exactly one h1 on the page once the trail lands', async () => {
     mockGetFolderBreadcrumbs.mockResolvedValue([
       { id: 'f1', name: 'Contracts' },

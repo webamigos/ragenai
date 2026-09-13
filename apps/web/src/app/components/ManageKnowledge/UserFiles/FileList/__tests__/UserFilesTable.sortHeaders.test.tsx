@@ -119,6 +119,12 @@ const messages = {
     'badge-none': 'No masking',
     'badge-toxic-only': 'Toxic only',
     'badge-strict': 'Strict',
+    // The compact badge the table renders shows the short form and reads the
+    // long one out, so a fixture without both halves is a fixture the column
+    // cannot render.
+    'tag-none': 'None',
+    'tag-toxic-only': 'Sensitive',
+    'tag-strict': 'All PII',
   },
 };
 

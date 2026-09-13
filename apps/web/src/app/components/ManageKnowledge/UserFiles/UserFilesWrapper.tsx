@@ -664,11 +664,23 @@ export const FileListWrapperWithData = ({
   }
 
   const hasServerContent = result.items.length > 0;
+  /*
+    A folder holding only folders is not an empty folder.
+
+    The folder filter is an exact match, so standing in "Contracts" with
+    everything filed one level down in "Contracts / 2026" returns no files at
+    all. Counting that as empty put the upload prompt over the one thing the
+    page had to show and dropped the subfolder rows with it — the way down was
+    rendered, then hidden. Both views already know what to do with folders and
+    no files; the gate above them did not.
+  */
+  const hasSubfolders = (subfolders?.length ?? 0) > 0;
+  const hasContent = hasServerContent || hasSubfolders;
   const hasActiveFilters =
     selectedFileTypes.length > 0 ||
     selectedStatuses.length > 0 ||
     selectedPolicies.length > 0;
-  const isTrulyEmpty = !hasServerContent && !hasActiveFilters;
+  const isTrulyEmpty = !hasContent && !hasActiveFilters;
   const isFilteredEmpty = !hasServerContent && hasActiveFilters;
   const isSearchEmpty = hasServerContent && filteredFiles.length === 0;
 
@@ -860,7 +872,7 @@ export const FileListWrapperWithData = ({
             className="py-20"
           />
         )}
-        {(hasServerContent || isFilteredEmpty) && layoutMode === 'grid' && (
+        {(hasContent || isFilteredEmpty) && layoutMode === 'grid' && (
           <DocumentsGridWithFilters
             result={result}
             sort={sort}
@@ -932,7 +944,7 @@ export const FileListWrapperWithData = ({
             )}
           </DocumentsGridWithFilters>
         )}
-        {(hasServerContent || isFilteredEmpty) && layoutMode === 'list' && (
+        {(hasContent || isFilteredEmpty) && layoutMode === 'list' && (
           <DocumentsTableWithFilters
             result={result}
             files={filteredFiles}

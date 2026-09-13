@@ -1391,7 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Alterar política de PII",
     "description": "Uma única política para todos os arquivos selecionados: {count, plural, one {# arquivo} other {# arquivos}}.",
-    "description-single": "Alteração da política de “{fileName}”. O texto já indexado permanece como está até o ficheiro ser reprocessado.",
+    "description-single": "Alteração da política de “{fileName}”. O texto já indexado permanece como está até o arquivo ser reprocessado.",
     "apply": "Aplicar ({count, plural, one {# arquivo} other {# arquivos}})",
     "applying": "A aplicar...",
     "reprocess-label": "Reprocessar agora",

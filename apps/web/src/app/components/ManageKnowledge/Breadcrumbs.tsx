@@ -133,13 +133,22 @@ export function Breadcrumbs({
   const t = useTranslations('folders');
   const isMobile = useIsMobile();
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
+  /*
+    An empty trail means two different things, and only one of them is a
+    trail that is still coming. Keeping them apart is what lets the root be a
+    heading while the fetch is in flight and a link once it has settled with
+    nothing — see `rootIsHeading` below.
+  */
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!folderId) {
       setBreadcrumbs([]);
+      setIsLoading(false);
       return;
     }
     setBreadcrumbs([]);
+    setIsLoading(true);
     let cancelled = false;
     getFolderBreadcrumbs(folderId)
       .then((data) => {
@@ -150,6 +159,11 @@ export function Breadcrumbs({
       .catch(() => {
         if (!cancelled) {
           setBreadcrumbs([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
         }
       });
     return () => {
@@ -182,8 +196,15 @@ export function Breadcrumbs({
     takes the `<h1>`; once the trail lands the last crumb takes it and the
     root goes back to being a link. Without this the page has no `<h1>` for
     as long as the fetch takes.
+
+    A trail that never arrives — the fetch failed, or the folder is gone — is
+    the third case. The heading stays, because the page still needs one and
+    the scope is the truest thing left to call it, but the root goes back to
+    being clickable: with the rail hidden below `lg`, a heading that is only a
+    heading leaves no way out of a folder whose trail could not be loaded.
   */
   const rootIsHeading = isTitle && visible.length === 0;
+  const rootHeadingNavigates = rootIsHeading && !isLoading;
   const rootText = isTitle
     ? (rootLabel ?? t('knowledge-base'))
     : t('knowledge-base');
@@ -200,8 +221,21 @@ export function Breadcrumbs({
       {/* Home / root */}
       {rootIsHeading ? (
         <h1 className="flex min-w-0 items-center gap-1 truncate font-display text-xl font-semibold text-foreground">
-          <HomeIcon className="size-5 shrink-0" />
-          <span className="truncate">{rootText}</span>
+          {rootHeadingNavigates ? (
+            <button
+              type="button"
+              onClick={() => onNavigate(null)}
+              className="flex min-w-0 items-center gap-1 hover:text-muted-foreground transition-colors"
+            >
+              <HomeIcon className="size-5 shrink-0" />
+              <span className="truncate">{rootText}</span>
+            </button>
+          ) : (
+            <>
+              <HomeIcon className="size-5 shrink-0" />
+              <span className="truncate">{rootText}</span>
+            </>
+          )}
         </h1>
       ) : (
         <button
