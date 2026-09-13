@@ -61,7 +61,7 @@ const emptyStore = () =>
 const show = (
   store = storeWithRetrieval(),
   shown: MessageDto[] = [answer],
-  props: { isPublicAccess?: boolean } = {},
+  props: { isPublicAccess?: boolean; canOpenSources?: boolean } = {},
 ) =>
   render(
     <Provider store={store}>
@@ -177,23 +177,27 @@ describe('ChatOutput citations — a reopened thread', () => {
  *
  * `SourcesBlock` renders a control only when it is handed an `onActivate`, and
  * that is deliberate: the panel it opens fetches the document from
- * `/api/files/{id}`, which needs a session and the file's own access check. On
- * a public share there is neither, so the card would open onto "Failed to load
- * file." A card that clicks into nothing is worse than one that does not
- * invite the click.
+ * `/api/files/{id}`, which needs a session and the file's own access check.
  *
- * The cards themselves stay either way — what the answer was grounded in is
- * worth showing to anyone who can read the answer.
+ * The two read-only surfaces differ in exactly that. `/public` has no session,
+ * so the card would open onto "Failed to load file" — a card that clicks into
+ * nothing is worse than one that does not invite the click. The panel's
+ * read-only thread view sits behind the `(panel)` layout, which resolves the
+ * current user and redirects to sign-in without one, so its reader can open
+ * the document and should be allowed to.
+ *
+ * The cards themselves stay on both — what the answer was grounded in is worth
+ * showing to anyone who can read the answer.
  */
-describe('ChatOutput citations — a read-only view', () => {
+describe('ChatOutput citations — who can open a source', () => {
+  const card = () => screen.queryByRole('button', { name: 'Open umowa.pdf' });
+
   it('offers no control on a public thread', () => {
     show(storeWithRetrieval(), [answer], { isPublicAccess: true });
 
     expect(screen.getByRole('region', { name: 'Sources' })).toBeInTheDocument();
     expect(screen.getByText('umowa.pdf')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Open umowa.pdf' }),
-    ).not.toBeInTheDocument();
+    expect(card()).not.toBeInTheDocument();
   });
 
   it('offers the control on an ordinary thread', () => {
@@ -201,8 +205,25 @@ describe('ChatOutput citations — a read-only view', () => {
     // satisfy the assertion above.
     show(storeWithRetrieval(), [answer]);
 
-    expect(
-      screen.getByRole('button', { name: 'Open umowa.pdf' }),
-    ).toBeInTheDocument();
+    expect(card()).toBeInTheDocument();
+  });
+
+  it('offers the control on a read-only thread that has a session', () => {
+    // Read-only chrome and an authenticated reader are not the same thing.
+    // `(panel)/chats/[threadId]/read-only` is both, and passes this explicitly.
+    show(storeWithRetrieval(), [answer], {
+      isPublicAccess: true,
+      canOpenSources: true,
+    });
+
+    expect(screen.queryByRole('button', { name: /Regenerate/i })).toBeNull();
+    expect(card()).toBeInTheDocument();
+  });
+
+  it('still shows the sources when the control is withheld', () => {
+    show(storeWithRetrieval(), [answer], { canOpenSources: false });
+
+    expect(screen.getByText('umowa.pdf')).toBeInTheDocument();
+    expect(card()).not.toBeInTheDocument();
   });
 });

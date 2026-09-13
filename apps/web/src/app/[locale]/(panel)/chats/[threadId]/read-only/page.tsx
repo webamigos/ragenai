@@ -79,6 +79,14 @@ export default function ReadOnlyThreadPage({ params }: Props) {
           loadingMessage=""
           streamedMessage={null}
           isPublicAccess={true}
+          /*
+            Read-only chrome, but a real session: this route is inside the
+            `(panel)` layout, which resolves the current user and redirects to
+            sign-in without one. So `/api/files/{id}` works for this reader and
+            a cited source can be opened — unlike on `/public`, where there is
+            no session and the panel would only show "Failed to load file."
+          */
+          canOpenSources={true}
         />
         <div ref={messagesEndRef} />
       </div>
