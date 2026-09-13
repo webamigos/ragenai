@@ -16,7 +16,7 @@
  * See ./README.md for prerequisites.
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
@@ -25,7 +25,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { loadCorpus, resolveCorpusDir } from './lib/corpus';
 import { askRag, askControl } from './lib/arms';
 import { runAssertions, judge } from './lib/grade';
-import { renderMarkdown, tally } from './lib/report';
+import { renderMarkdown, resultStem, tally } from './lib/report';
 import { withRetry } from './lib/retry';
 import { parseArgs, waitForIngest } from './lib/runner';
 import type { CaseResult, Report, StackFingerprint } from './lib/types';
@@ -454,8 +454,15 @@ async function main(): Promise<void> {
   mkdirSync(outDir, { recursive: true });
   // The corpus revision belongs in the file name: correcting a rubric changes
   // what the number means, and two files from the same day that measured
-  // different instruments must not overwrite each other.
-  const stem = `${report.fingerprint.date}-${corpus.name}-rev${corpus.version}`;
+  // different instruments must not overwrite each other. Repeated runs of the
+  // same revision get a `-runN` suffix — the README asks for the median of at
+  // least three, and before this the second run overwrote the first.
+  const stem = resultStem(
+    report.fingerprint.date,
+    corpus.name,
+    corpus.version,
+    (candidate) => existsSync(join(outDir, `${candidate}.json`)),
+  );
   writeFileSync(join(outDir, `${stem}.json`), JSON.stringify(report, null, 2));
   writeFileSync(join(outDir, `${stem}.md`), renderMarkdown(report));
   console.log(`\nWrote results/${stem}.json and results/${stem}.md`);

@@ -1,4 +1,5 @@
 import { type Document } from '../../types/Document';
+import { packRows } from './pack-rows';
 
 /**
  * CSV row-group splitter (ADR-17).
@@ -12,6 +13,10 @@ import { type Document } from '../../types/Document';
  * sheet with sheet_name in metadata, and the dispatcher routes them through
  * this splitter (see split-documents.ts). Sheet-level metadata flows
  * through unchanged.
+ *
+ * The packing loop moved to `pack-rows.ts` when the table chunker needed the
+ * same behaviour; this file keeps everything CSV-specific — the parser, the
+ * first-row-is-the-header assumption, and RFC 4180 serialisation.
  *
  * Assumptions:
  * - The first row of the input is the header. If the input has only one
@@ -138,6 +143,11 @@ function rowsToCsv(rows: string[][]): string {
 
 /**
  * Split a single CSV document into row-grouped chunks.
+ *
+ * The packing itself lives in `packRows`, shared with the table chunker — one
+ * implementation of "repeat the header, pack to the budget" rather than two.
+ * What stays here is everything CSV-specific: parsing the text into rows,
+ * deciding that `rows[0]` is the header, and serialising back to RFC 4180.
  */
 function splitCsvDocument(
   doc: Document,
@@ -147,54 +157,16 @@ function splitCsvDocument(
   if (rows.length === 0) {
     return [];
   }
-  if (rows.length === 1) {
-    // Single row — header only, no body. Return it as-is.
-    return [
-      {
-        pageContent: rowToCsv(rows[0]),
-        metadata: { ...doc.metadata },
-      },
-    ];
-  }
 
-  const headerRow = rows[0];
-  const bodyRows = rows.slice(1);
-  const headerText = rowToCsv(headerRow);
-  const headerSize = headerText.length + 1; // +1 for the newline after header
-
-  const chunks: Document[] = [];
-  let currentBody: string[][] = [];
-  let currentSize = headerSize;
-
-  const flush = () => {
-    if (currentBody.length === 0) {
-      return;
-    }
-    chunks.push({
-      pageContent: rowsToCsv([headerRow, ...currentBody]),
-      metadata: { ...doc.metadata },
-    });
-    currentBody = [];
-    currentSize = headerSize;
-  };
-
-  for (const row of bodyRows) {
-    const rowText = rowToCsv(row);
-    const rowSize = rowText.length + 1; // +1 for newline between rows
-
-    // If adding this row would exceed the budget and we already have
-    // some rows in the current chunk, flush first.
-    if (currentBody.length > 0 && currentSize + rowSize > options.chunkSize) {
-      flush();
-    }
-
-    currentBody.push(row);
-    currentSize += rowSize;
-  }
-
-  flush();
-
-  return chunks;
+  return packRows({
+    // A CSV's header is its first row, by assumption. Docling states which
+    // cells are headers instead, which is why the caller supplies them rather
+    // than `packRows` deciding.
+    headerRows: rows.slice(0, 1),
+    bodyRows: rows.slice(1),
+    budget: options.chunkSize,
+    render: rowsToCsv,
+  }).map((pageContent) => ({ pageContent, metadata: { ...doc.metadata } }));
 }
 
 /**

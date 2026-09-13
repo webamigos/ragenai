@@ -45,7 +45,7 @@ export const prepareMetadata = async ({
       // prepareMetadata owns the canonical vector-store metadata shape.
       const incoming = doc.metadata as
         | {
-            chunk_type?: 'summary';
+            chunk_type?: 'summary' | 'table';
             sectionPath?: string;
             sheetName?: string;
             timestampStartMs?: number;

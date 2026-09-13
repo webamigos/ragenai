@@ -46,6 +46,15 @@ export interface Question {
   expectNone?: string[];
   /** Graded by an LLM judge through the same proxy the product uses. */
   rubric?: string;
+  /**
+   * Why this question is in the corpus, for a reader deciding whether a
+   * failure is a regression or a question that was never fair.
+   *
+   * Not graded and not reported. It exists because a corpus built to expose
+   * one specific failure — `tabele-bilingual-v1` and the header a split table
+   * loses — is a set of numbers that look arbitrary without it.
+   */
+  why?: string;
 }
 
 /** Which pipeline answered. `no-rag` is the control: same model, no documents. */

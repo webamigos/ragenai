@@ -75,6 +75,30 @@ export const SUMMARY_MODEL = process.env.SUMMARY_MODEL || 'gemini-2.5-flash';
  * the indexed text. When on, behaviour is unchanged: `piiPolicy` still decides
  * how strict masking is per file, and failures still surface to Temporal.
  */
+/**
+ * Whether a table Docling parsed becomes its own chunk.
+ *
+ * Off by default and under measurement — ADR-20 pauses chunking changes until
+ * a number exists, and ADR-43 records why 4c was delivered on the parser
+ * rather than on ADR-18's prompt. The baseline this is judged against is
+ * `apps/web/evals/rag-benchmark/results/2026-09-12-tabele-bilingual-v1-baseline.md`.
+ *
+ * **Installation-wide, not per organization.** It is deliberately not a
+ * `FEATURE_KEYS` entry in `@ragenai/platform-contracts`: that mechanism
+ * resolves per organization through four layers, for capabilities an operator
+ * sells or grants. A chunking strategy resolved per organization would put two
+ * chunk shapes in one Qdrant collection. This belongs with
+ * `FEATURE_FLAG_RERANKING` and `DOCUMENT_PARSER`.
+ *
+ * It changes **CSV and XLSX too**, not only tables inside documents:
+ * `DOCLING_SUPPORTED_TYPES` covers spreadsheets and `split-documents.ts`
+ * returns to the markdown splitter before the `FileType` switch that would
+ * route them to the row-group splitter. A spreadsheet is entirely table, so
+ * its chunking changes completely rather than marginally.
+ */
+export const TABLE_CHUNKS_ENABLED =
+  process.env.FEATURE_FLAG_TABLE_CHUNKS === '1';
+
 export const PII_MASKING_ENABLED = process.env.FEATURE_FLAG_PII_MASKING === '1';
 
 export const PRESIDIO_ANALYZER_URL =

@@ -7,6 +7,7 @@ import {
   crosstab,
   isUngraded,
   renderMarkdown,
+  resultStem,
 } from '../lib/report';
 import type { CaseResult, Report } from '../lib/types';
 
@@ -292,5 +293,57 @@ describe('renderMarkdown', () => {
       ],
     });
     expect(md).toContain('none of: a \\| b');
+  });
+});
+
+/**
+ * Repeated runs of one corpus revision do not destroy each other.
+ *
+ * The README tells you to record the median of at least three runs, and until
+ * `resultStem` existed the second run wrote the first one's file name: same
+ * date, same revision. A benchmark that deletes its own evidence while asking
+ * for more of it is worse than one that never asked.
+ */
+describe('resultStem', () => {
+  const none = () => false;
+
+  it('names the first run by date and corpus revision', () => {
+    expect(resultStem('2026-09-12', 'tabele-bilingual-v1', 1, none)).toBe(
+      '2026-09-12-tabele-bilingual-v1-rev1',
+    );
+  });
+
+  it('leaves an existing result alone and puts the next run beside it', () => {
+    const taken = new Set(['2026-09-12-tabele-bilingual-v1-rev1']);
+    expect(
+      resultStem('2026-09-12', 'tabele-bilingual-v1', 1, (s) => taken.has(s)),
+    ).toBe('2026-09-12-tabele-bilingual-v1-rev1-run2');
+  });
+
+  it('keeps counting past the second run', () => {
+    const taken = new Set([
+      '2026-09-12-tabele-bilingual-v1-rev1',
+      '2026-09-12-tabele-bilingual-v1-rev1-run2',
+      '2026-09-12-tabele-bilingual-v1-rev1-run3',
+    ]);
+    expect(
+      resultStem('2026-09-12', 'tabele-bilingual-v1', 1, (s) => taken.has(s)),
+    ).toBe('2026-09-12-tabele-bilingual-v1-rev1-run4');
+  });
+
+  it('keeps a corrected corpus separate from the revision before it', () => {
+    // A rubric change measures a different instrument; the two numbers are not
+    // comparable and must not share a file.
+    const taken = new Set(['2026-09-12-tabele-bilingual-v1-rev1']);
+    expect(
+      resultStem('2026-09-12', 'tabele-bilingual-v1', 2, (s) => taken.has(s)),
+    ).toBe('2026-09-12-tabele-bilingual-v1-rev2');
+  });
+
+  it('keeps two corpora of the same day apart', () => {
+    const taken = new Set(['2026-09-12-tabele-bilingual-v1-rev1']);
+    expect(
+      resultStem('2026-09-12', 'kolej-bilingual-v1', 1, (s) => taken.has(s)),
+    ).toBe('2026-09-12-kolej-bilingual-v1-rev1');
   });
 });

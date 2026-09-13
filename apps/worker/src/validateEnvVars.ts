@@ -82,6 +82,19 @@ const envSchema = fragments.targetEnvRequired
     // makes on purpose.
     ANALYTICS_RETENTION_DAYS: z.coerce.number().positive().optional(),
 
+    /**
+     * Table chunking, under measurement (ADR-43). `'1'` turns it on.
+     *
+     * Declared here because nothing else catches a typo: this schema is a
+     * non-strict Zod object, so an unknown key is stripped silently, and
+     * `DOCLING_STRICT`, `DOCUMENT_PARSER` and the existing `FEATURE_FLAG_*`
+     * variables are all undeclared for that reason. Declaring it still does
+     * not catch a misspelling in the *deployment* — `FEATURE_FLAG_TABLE_CHUNK`
+     * is simply absent, not invalid — which is why the resolved value is also
+     * logged once per ingest.
+     */
+    FEATURE_FLAG_TABLE_CHUNKS: z.enum(['0', '1']).optional(),
+
     // Langfuse
     LANGFUSE_PUBLIC_KEY: z.string().optional(),
     LANGFUSE_SECRET_KEY: z.string().optional(),

@@ -2,6 +2,8 @@ import {
   attachSourcePages,
   type PageAnchor,
 } from '../../services/text-splitters/source-pages';
+import { buildTableChunks } from '../../services/text-splitters/table-chunks';
+import type { DoclingTable } from '../../services/docling-client';
 import { type Document } from '../../types/Document';
 import {
   splitCsvDocuments,
@@ -13,6 +15,41 @@ import {
 import { FileType } from '../../types/UserFile';
 import { type SplitterSettings } from '../../utils/splitters';
 import { logger } from '../../services/logger';
+
+/**
+ * The keys that carried Docling's parse from the loader to here.
+ *
+ * The splitter copies a document's metadata onto every chunk it cuts, so
+ * without this the whole parsed table — every cell, on a sixty-row schedule —
+ * rides on each of the document's chunks across the activity boundary, and
+ * again on the way to `prepareMetadata`, which drops them all. `pageAnchors`
+ * has always done this at a smaller scale; tables would make it an order of
+ * magnitude worse, and Temporal has a payload limit that a long document could
+ * reach.
+ *
+ * Nothing downstream reads them off a chunk: the page count is read off
+ * `rawDocs[0]` by the workflow, the anchors and the tables off `rawDocs[0]`
+ * here.
+ */
+const TRANSPORT_KEYS = [
+  'doclingPageAnchors',
+  'doclingTables',
+  'doclingElementLabels',
+  'doclingPageCount',
+] as const;
+
+function withoutTransport(chunks: Document[]): Document[] {
+  return chunks.map((chunk) => {
+    if (!TRANSPORT_KEYS.some((key) => key in chunk.metadata)) {
+      return chunk;
+    }
+    const metadata = { ...chunk.metadata };
+    for (const key of TRANSPORT_KEYS) {
+      delete metadata[key];
+    }
+    return { ...chunk, metadata };
+  });
+}
 
 type SplitTextParams = {
   fileType: FileType;
@@ -59,9 +96,34 @@ export const splitText = async ({
       const anchors = source?.metadata?.doclingPageAnchors as
         PageAnchor[] | undefined;
 
-      return anchors && anchors.length > 0
-        ? attachSourcePages(chunks, source.pageContent, anchors)
-        : chunks;
+      const withPages =
+        anchors && anchors.length > 0
+          ? attachSourcePages(chunks, source.pageContent, anchors)
+          : chunks;
+
+      // The tables, as chunks of their own. Present on the metadata only when
+      // the excision actually ran, so this is never a second copy of figures
+      // the prose still holds — `loadDocling` withholds the key after a
+      // refusal, and emitting alongside the prose is the duplication ADR-15's
+      // exact-string dedupe would not collapse.
+      const tables = source?.metadata?.doclingTables as
+        DoclingTable[] | undefined;
+      if (!tables || tables.length === 0) {
+        return withoutTransport(withPages);
+      }
+
+      const tableChunks = tables.flatMap((table, index) =>
+        buildTableChunks(table, index, {
+          budget: splitterSettings.chunkSize,
+          sectionPath: table.sectionPath,
+        }),
+      );
+
+      // After the prose, not interleaved. Order within a file is what
+      // `chunk_index`, `previous_chunk_id` and `next_chunk_id` describe, and a
+      // table chunk has no position in the prose to be interleaved at — its
+      // place is marked by the placeholder the excision left behind.
+      return [...withoutTransport(withPages), ...tableChunks];
     }
 
     switch (fileType) {

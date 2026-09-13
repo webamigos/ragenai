@@ -87,6 +87,15 @@ describe('convertWithDocling', () => {
       markdown: '# Hi',
       pageCount: null,
       pageAnchors: [],
+      tables: [],
+      elementLabels: {},
+      tableExcision: {
+        markdown: '# Hi',
+        applied: false,
+        refusal: 'no-tables',
+        candidateCount: 0,
+        sectionPaths: [],
+      },
     });
   });
 
