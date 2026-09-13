@@ -279,7 +279,7 @@ Uses `@prisma/adapter-pg`. Config: `prisma.config.ts` (excluded from tsconfig). 
 
 `prisma/schema.prisma` is the **single shared schema for the whole monorepo** — `apps/api` (NestJS) generates its own client from the same file via a second `generator apiClient` block (output `apps/api/src/generated/prisma`). One `prisma generate` at the repo root regenerates both. Do not create a separate schema for another app — add another `generator` block here instead. See `docs/adrs/21-monorepo-and-api-decoupling.md`.
 
-Import `PrismaClient`, enums and types from `@/generated/prisma/client` in **server** code; a client component imports `@/generated/prisma/browser`. Nothing redirects between them — the webpack block that claimed to never ran. Getting it wrong fails the build with a Turbopack panic that names no file, so `tests/architecture/client-bundles-stay-browser-safe.test.ts` catches it first.
+Import `PrismaClient`, enums and types from `@/generated/prisma/client` in **server** code; a client component imports `@/generated/prisma/browser`. Nothing redirects between them; `tests/architecture/client-bundles-stay-browser-safe.test.ts` catches a mistake.
 
 **Tenant-scope guard (warn-only)**: a Prisma Client Extension that warns when a
 query on a tenant-scoped model runs without its org field. It **warns, it does
@@ -355,17 +355,12 @@ Moved to [`docs/settings-pages.md`](docs/settings-pages.md) — see the Task Rou
 ## Key Conventions
 
 - **Environment variables**: a variable read by more than one app belongs in a `@ragenai/env` fragment, not in each app's schema (ADR-37). Use `httpUrl()` for endpoints — `z.string().url()` accepts `localhost:4318`, because `new URL()` reads `localhost:` as a scheme. Services validate at boot and exit; `apps/web` must not, since it serves the setup page that explains the fix.
-- **Panel colour and density** (design system v2 — the full palette and
-  crimson's five rationed jobs are in
-  [`docs/panel-ux-rules.md`](docs/panel-ux-rules.md)): navy is the only
-  *non-destructive* action colour; crimson is destructive-and-reserved; green
-  and amber encode document or job state and nothing else; state never rests on
-  colour alone, so a badge always carries a word or a percentage. Use the
-  semantic tokens (`bg-primary`, `text-muted-foreground`, `border-border`),
-  never a literal Tailwind colour — enforced by
-  `tests/architecture/panel-colours-are-tokens-not-literals.test.ts`, which
-  fails the build on a ramp step, bare white/black or a hex and lists the few
-  things that genuinely cannot be a token.
+- **Panel colour and density** (design system v2): use the semantic tokens
+  (`bg-primary`, `text-muted-foreground`, `border-border`), never a literal
+  Tailwind colour — `tests/architecture/panel-colours-are-tokens-not-literals.test.ts`
+  fails the build on a ramp step, bare white/black or a hex. Which colour means
+  what, why crimson is rationed, and why state never rests on colour alone:
+  [`docs/panel-ux-rules.md`](docs/panel-ux-rules.md).
 - **Braces required**: always use braces for `if`/`else`/`for`/`while` — no single-line bodies. Enforced by ESLint `curly` in `@ragenai/eslint-config`, so it applies to every workspace, not just `apps/web`.
 - **ESM**: `"type": "module"` — all `.js` are ESM. CommonJS scripts use `.cjs`. `moduleResolution: "bundler"` — no deep internal imports (e.g. `langchain/dist/...`).
 - Server components by default; client components mark with `'use client'`.
@@ -376,7 +371,7 @@ Moved to [`docs/settings-pages.md`](docs/settings-pages.md) — see the Task Rou
 - i18n: `en`/`pl` via `next-intl`. Use `Link`/`redirect`/`usePathname`/`useRouter` from `@/i18n/routing` (NOT `next/link` or `next/navigation`).
 - Tailwind v4 with `@theme` directive in `src/app/[locale]/global.css`. Brand colors: Ragen red `#cb1d3d`, Ragen blue `#252d53`.
 - Error classes: `UnauthorizedException`, `NotFoundException`, `LimitExceededException`. Temporal workflows: reference by string name, not function import.
-- Logging: Pino w/ OpenTelemetry. Import `@/app/lib/utils/logger`, which picks server or client at **runtime** on `typeof window`; nothing swaps them at build time.
+- Logging: Pino w/ OpenTelemetry. Import `@/app/lib/utils/logger` — it picks server or client at **runtime**; nothing swaps them at build time.
 - Observability: OTel traces/metrics/logs via `src/instrumentation.ts` + `instrumentation-client.ts`; auto-instrumentation covers HTTP, Postgres, Prisma and outgoing `fetch`. **All of it is a no-op unless `OTEL_EXPORTER_OTLP_ENDPOINT` is set.** LLM tracing is LiteLLM → Langfuse, not app OTel. See [ADR-22](docs/adrs/22-observability-opentelemetry.md).
 - Pre-commit: lint-staged runs `eslint --fix` + `prettier --write`, dispatching each file to its own workspace in `lint-staged.config.mjs` — add an entry there when you add a workspace. Conventional commits, enforced by commitlint.
 
