@@ -43,6 +43,7 @@ import {
 } from '@/features/teams/services/commands/sync-litellm-team-member-command';
 import { trackAudit } from '@/features/audit-logs/services/commands/create-audit-log-command';
 import { eventBus } from '@/libs/events';
+import { isTestTargetEnv } from '@/libs/utils/env';
 import { resolveDefaultVectorStore } from '@ragenai/rag-core';
 
 const stripeClient =
@@ -377,6 +378,33 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+  },
+
+  /**
+   * Better Auth rate-limits itself at 100 requests per 10 seconds per IP, and
+   * turns that on whenever `NODE_ENV === 'production'` — which the E2E suite
+   * is, because it drives a production build rather than the dev server.
+   *
+   * The whole suite is one IP making one request after another as fast as
+   * Playwright can drive it, and every authenticated page load costs at least
+   * one `/api/auth/get-session`. Around the hundredth in a window the endpoint
+   * starts answering 429, the client reads that as "not signed in", and
+   * `PanelLayoutWrapper` sends the page to /sign-in. Then the window rolls and
+   * it works again.
+   *
+   * That is what made `p1-31 › members tab shows current user as owner` fail
+   * on `main` while the test either side of it passed on the same route: a
+   * three-or-four-test hole that moves depending on how the run is paced, and
+   * looks exactly like an intermittent auth regression. `reLogin()` in
+   * `e2e/helpers.ts` is the workaround the later specs grew for it — it waits
+   * and signs in again, which is mostly just waiting out the window.
+   *
+   * Off for `TARGET_ENV=test` only. Production keeps the limiter: it is there
+   * to make credential stuffing expensive, and a test environment has no
+   * credentials worth stuffing.
+   */
+  rateLimit: {
+    enabled: !isTestTargetEnv,
   },
 
   user: {

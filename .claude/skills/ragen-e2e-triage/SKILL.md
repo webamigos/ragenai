@@ -31,7 +31,7 @@ Postgres has to be up (`docker compose up`). One time:
 
 ```bash
 createdb ragen_e2e   # or CREATE DATABASE from any client; `createdb` is not always installed
-DATABASE_URL="postgresql://postgres:pass123@localhost:5432/ragen_e2e" npx prisma migrate deploy
+DATABASE_URL="postgresql://postgres:pass123@localhost:55432/ragen_e2e" npx prisma migrate deploy
 # .env.e2e.local (root and/or apps/web) overrides DATABASE_URL / DATABASE_DIRECT_URL
 ```
 
@@ -46,14 +46,44 @@ the service; a local run has to do the same:
 
 ```bash
 npm run api:build
+DATABASE_URL="postgresql://postgres:pass123@localhost:55432/ragen_e2e" \
+DATABASE_DIRECT_URL="postgresql://postgres:pass123@localhost:55432/ragen_e2e" \
 PORT=3001 TARGET_ENV=test node apps/api/dist/main.js &
 # and in apps/web/.env.e2e.local:
 #   RAGEN_API_INTERNAL_URL="http://localhost:3001"
 ```
 
-Those exact three failing while everything else passes is the signature. Check
-it before concluding anything about the change under test — it has already
-cost one wasted triage cycle during a Next upgrade.
+**`DATABASE_URL` on that line is the whole trick, and leaving it off is worse
+than leaving the service down.** `apps/web` gets the e2e database from
+`playwright.config.ts`, which loads `apps/web/.env.e2e.local` with
+`override: true` and hands it to the web server it starts. Nothing does that
+for `apps/api`: started bare it falls through to the repository root's
+`.env.local` and serves the **development** database — same port, same process,
+answering every request from the wrong data.
+
+That is not the three-spec signature below. It is a *silent* wrong answer, and
+it fails as roughly thirty tests spread over seven `p0` specs, all asserting
+things that look nothing like a database problem: `expect(locator('a[href*="/chats/"]').first()).toBeVisible()`
+times out because the sidebar's thread list is served by apps/api; the
+knowledge base renders no folders; document versioning and access control find
+none of their fixtures. Meanwhile the page snapshot shows the right user and
+the right organization, and `select count(*) from threads` against `ragen_e2e`
+shows the rows are there — so every check you would think to run says the setup
+is fine. Because `smoke-11` and `smoke-12` are in that set and the
+`authenticated` project depends on `smoke-auth`, the entire `p0` tier reports
+as "did not run" on top of it.
+
+Measured on a clean checkout of `main`: 28 failed / 67 passed with apps/api on
+the dev database, **97 passed / 0 failed** with the two variables above added
+and nothing else changed.
+
+If apps/api is genuinely *down* rather than misconfigured, you get the narrower
+signature instead — `settings connectors page loads`, `upload a file to a
+project` and `export thread as Markdown`, with
+`Upstream service unavailable: fetch failed` in the web server's log. Those
+exact three failing while everything else passes is that signature. Check it
+before concluding anything about the change under test — it has already cost
+one wasted triage cycle during a Next upgrade.
 
 Every run:
 
@@ -69,7 +99,7 @@ To rebuild the database when the seed's assumptions have changed — Prisma's ow
 command, so it needs neither `psql` nor `createdb`:
 
 ```bash
-DATABASE_URL="postgresql://postgres:pass123@localhost:5432/ragen_e2e" \
+DATABASE_URL="postgresql://postgres:pass123@localhost:55432/ragen_e2e" \
   npx prisma migrate reset --force --skip-seed
 ```
 
