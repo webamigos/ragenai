@@ -28,6 +28,15 @@ E2E runs against a separate `ragen_e2e` database, so it never touches your dev
 data. Once: `createdb ragen_e2e`, run the migrations against it, then create
 `.env.e2e.local` overriding `DATABASE_URL` and `DATABASE_DIRECT_URL`.
 
+That file only redirects `apps/web` — `playwright.config.ts` loads it and hands
+it to the web server it starts. **`apps/api` has to be pointed at `ragen_e2e`
+on its own command line**, or it falls through to the repository root's
+`.env.local` and answers from your dev database. It is the sidebar's thread
+list, the knowledge base's folders and the versioning fixtures, so getting this
+wrong fails about thirty `p0` tests with assertions that look nothing like a
+database problem. `.claude/skills/ragen-e2e-triage/SKILL.md` has the command
+and the symptoms.
+
 `npm run build` has to succeed before `npm run test:e2e` — the suite drives the
 built app, not the dev server. If LiteLLM is not listening on :4000,
 `e2e/mock-llm-server.ts` starts on its own.
