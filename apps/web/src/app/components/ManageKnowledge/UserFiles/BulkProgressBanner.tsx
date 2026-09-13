@@ -26,7 +26,10 @@ export const BulkProgressBanner = ({ state, onDismiss }: Props) => {
       role="status"
       aria-live="polite"
       data-testid="bulk-progress-banner"
-      className="mb-3 flex items-center gap-3 rounded-md border px-4 py-3 text-sm"
+      // `shrink-0`: it sits in the file list's flex column, above the
+      // scrolling rows. Without it a long message is compressed away rather
+      // than taking the height it needs.
+      className="mb-3 flex shrink-0 items-center gap-3 rounded-md border px-4 py-3 text-sm"
     >
       {state.status === 'running' && (
         <>

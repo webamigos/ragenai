@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "Benutzer-ID fehlt",
     "error-during-deleting-file": "Fehler beim Löschen des Dokuments",
+    "error-during-moving-file": "Fehler beim Verschieben des Dokuments",
     "fetching-docs-error": "Fehler beim Abrufen der Dokumente",
     "no-files": "Keine Dateien"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Fehlgeschlagen",
     "status-uploading": "Wird hochgeladen",
     "score-rag": "Bewertung für RAG",
+    "optimize-rag": "Für RAG optimieren",
+    "change-pii-policy": "PII-Richtlinie ändern",
     "sort-file-name": "Dateiname",
     "sort-file-size": "Dateigröße",
     "sort-created": "Hinzugefügt am",
@@ -1276,7 +1279,6 @@
     "sort-label": "Sortieren",
     "sort-dir-asc": "Aufsteigend",
     "sort-dir-desc": "Absteigend",
-    "reembed": "Richtlinie anwenden",
     "filter-clear": "Filter {filter} zurücksetzen",
     "filter-pii-policy": "Richtlinie",
     "filter-pii-policy-all": "Alle"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "PII-Richtlinie ändern",
     "description": "Eine Richtlinie für alle ausgewählten Dateien: {count, plural, one {# Datei} other {# Dateien}}.",
+    "description-single": "Richtlinie für „{fileName}“ ändern. Der bereits indexierte Text bleibt unverändert, bis die Datei erneut verarbeitet wird.",
     "apply": "Anwenden ({count, plural, one {# Datei} other {# Dateien}})",
     "applying": "Wird angewendet...",
     "reprocess-label": "Jetzt neu verarbeiten",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Sensible Daten",
     "badge-strict": "Alle personenbezogenen Daten",
     "pii-policy-label": "Richtlinie zur Maskierung personenbezogener Daten",
-    "inline-edit-tooltip": "Richtlinie gespeichert. Klicke auf \"Richtlinie anwenden\", um das Dokument mit den neuen Maskierungseinstellungen neu zu verarbeiten.",
     "reembed-success": "Das Dokument wird mit der neuen Richtlinie neu verarbeitet",
     "reembed-error": "Fehler beim Anwenden der Richtlinie",
     "info-page-title": "Richtlinie für personenbezogene Daten",

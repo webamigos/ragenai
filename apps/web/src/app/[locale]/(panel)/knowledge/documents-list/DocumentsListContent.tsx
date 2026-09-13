@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { FileListWrapperWithData } from '@/app/components/ManageKnowledge/UserFiles/UserFilesWrapper';
 import {
@@ -13,6 +13,8 @@ import { useUserFilesContext } from '@/app/hooks/useUserFilesContext';
 import { useOrganization } from '@/app/hooks/use-auth';
 import { getFolders } from '@/app/actions/folders';
 import { getKnowledgeBaseUsage, type KnowledgeBaseUsage } from '../actions';
+import { bulkMoveFilesToFolderAction } from '@/app/actions/bulk-documents';
+import { statusToast } from '@/app/lib/utils/toast';
 import { useRouter, usePathname } from '@/i18n/routing';
 import type {
   PaginatedUserFilesResult,
@@ -61,6 +63,9 @@ export function DocumentsListContent({
     useUserFilesContext();
   const { canManageOrg } = useOrganization();
   const tFolders = useTranslations('folders');
+  const tBulk = useTranslations('bulk-notifications');
+  const tError = useTranslations('error-toast');
+  const { successToast, errorToast } = statusToast();
 
   useEffect(() => {
     const incoming = folderId ?? null;
@@ -147,15 +152,89 @@ export function DocumentsListContent({
 
   const scopeTotals = scopeCounts[viewMode] ?? { files: 0, pages: 0 };
 
+  /**
+   * The folders directly inside the one being shown — and deliberately none
+   * at the root.
+   *
+   * The folder filter is an exact match (`user-files-where.ts`), not a
+   * subtree, so standing in "Contracts" you see what is filed in Contracts
+   * and nothing from "Contracts / 2026". Those files had no route from the
+   * content area at all; the rail was the only way down.
+   *
+   * At the root there is no folder condition, so every file is already in the
+   * list wherever it is filed. Folder tiles there would show the same
+   * documents a second time — which is why a scope and a folder are two ways
+   * of narrowing one set here rather than a tree you stand inside.
+   */
+  /**
+   * A file dropped on a folder row in the rail.
+   *
+   * Goes through the bulk action for a single file as well as for many: it is
+   * the one path that already checks, per file, whether this member may move
+   * it — an admin may move anyone's, everyone else only their own — and
+   * reports which ones it could not. A separate single-file path here would
+   * be a second place for that rule to drift.
+   */
+  const handleDropFiles = useCallback(
+    async (targetFolderId: string | null, fileIds: string[]) => {
+      try {
+        const result = await bulkMoveFilesToFolderAction(
+          fileIds,
+          targetFolderId,
+        );
+        const succeeded = result.succeeded.length;
+        if (succeeded === 0) {
+          errorToast({ message: tError('error-during-moving-file') });
+          return;
+        }
+        successToast({
+          message:
+            result.failed.length > 0
+              ? tBulk('moved-partial', {
+                  succeeded,
+                  total: fileIds.length,
+                })
+              : tBulk('moved-all', { count: succeeded }),
+        });
+        // The moved files leave this list, and the wrapper's `retainOnly`
+        // effect prunes them from the selection when the new page arrives.
+        loadFolders();
+        router.refresh();
+      } catch {
+        errorToast({ message: tError('error-during-moving-file') });
+      }
+    },
+    [loadFolders, router, successToast, errorToast, tBulk, tError],
+  );
+
+  const subfolders = useMemo(
+    () =>
+      currentFolderId
+        ? folders.filter((folder) => folder.parentId === currentFolderId)
+        : [],
+    [folders, currentFolderId],
+  );
+
   return (
     // flex-1 + min-h-0 claims the panel's full height from the shell, which
     // stretches its children. Without min-h-0 the folder column's
     // overflow-y-auto never scrolls: a flex item's default min-height is
     // auto, so it grows to its content instead of clipping.
-    <div className="flex min-h-0 flex-1 gap-3 pb-5">
+    //
+    // `data-panel-fullwidth` is the shell's opt-in (see global.css): it drops
+    // the max-w-6xl cap, trims the 40px padding and — the part this page
+    // depends on — gives the shell a definite height, so the header, toolbar
+    // and pagination below can stay put while only the rows scroll. The
+    // min-h-0 chain from here down to the table's scroller is what keeps that
+    // height from clipping instead of scrolling. Its bottom padding comes
+    // from the shell now, which is why there is no `pb-5` here.
+    <div data-panel-fullwidth className="flex min-h-0 flex-1 gap-3">
       {/* 216px, per phase 7. Its own scroll area: the usage block is pinned to
-          the bottom of the rail and must not scroll away with the folders. */}
-      <div className="hidden w-[216px] shrink-0 border-r border-border pr-2 lg:block">
+          the bottom of the rail and must not scroll away with the folders.
+          `min-h-0` is what makes that scroll real — FoldersList is `h-full`
+          over an `overflow-y-auto` body, which only clips once the rail has a
+          height to be bounded by. */}
+      <div className="hidden min-h-0 w-[216px] shrink-0 border-r border-border pr-2 lg:block">
         <FoldersList
           initialFolders={folders}
           onSelectFolder={handleSelectFolder}
@@ -164,11 +243,12 @@ export function DocumentsListContent({
           usage={usage}
           scopeCounts={scopeCounts}
           onFolderMutated={handleFolderMutated}
+          onDropFiles={handleDropFiles}
         />
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <FileListWrapperWithData
           result={result}
           sort={sort}
@@ -177,11 +257,29 @@ export function DocumentsListContent({
           selectedStatuses={selectedStatuses}
           selectedPolicies={selectedPolicies}
           canManageOrg={canManageOrg}
+          subfolders={subfolders}
+          onNavigateFolder={handleBreadcrumbNavigate}
           heading={
             <div className="min-w-0">
-              <h1 className="truncate font-display text-xl font-semibold text-foreground">
-                {tFolders(SCOPE_LABEL_KEY[viewMode])}
-              </h1>
+              {/*
+                Inside a folder the trail *is* the heading — "All files /
+                Contracts / 2026", with the folder you are in as the `<h1>`.
+                It used to sit in a band of its own above the toolbar, under
+                a heading that named the scope instead, which is two rows
+                answering "where am I" and only one of them answering it.
+              */}
+              {currentFolderId ? (
+                <Breadcrumbs
+                  folderId={currentFolderId}
+                  onNavigate={handleBreadcrumbNavigate}
+                  variant="title"
+                  rootLabel={tFolders(SCOPE_LABEL_KEY[viewMode])}
+                />
+              ) : (
+                <h1 className="truncate font-display text-xl font-semibold text-foreground">
+                  {tFolders(SCOPE_LABEL_KEY[viewMode])}
+                </h1>
+              )}
               {/*
                 The scope's own totals, not the table's. The table already says
                 how many rows a filter left ("1-5 of 240" under it), so
@@ -207,19 +305,10 @@ export function DocumentsListContent({
             </div>
           }
           /*
-            Only inside a folder. `Breadcrumbs` renders nothing at the root on
-            its own, but the wrapper reserves a margin for whatever it is
-            handed — an empty element there leaves eight pixels of nothing
-            above the filter row.
+            No `topBarLeft` on this route. The trail moved up into the heading
+            above, which is the whole point: one band saying where you are
+            rather than two. The prop stays on the wrapper for other callers.
           */
-          topBarLeft={
-            currentFolderId ? (
-              <Breadcrumbs
-                folderId={currentFolderId}
-                onNavigate={handleBreadcrumbNavigate}
-              />
-            ) : undefined
-          }
         />
       </div>
     </div>

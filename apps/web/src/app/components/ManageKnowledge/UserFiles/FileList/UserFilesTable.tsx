@@ -28,11 +28,12 @@ import {
 } from '@heroicons/react/24/outline';
 import { SuspiciousContentBadge } from './SuspiciousContentBadge';
 import { RagScoreBadge } from './RagScoreBadge';
-import { PiiPolicySelect, type PiiPolicyValue } from '../../PiiPolicySelect';
+import { PiiPolicyBadge } from '../../PiiPolicyBadge';
 import { Tooltip } from '@ragenai/common-ui/Tooltip';
 import { EmptyState } from '@ragenai/common-ui/EmptyState';
+import { setDraggedFileIds } from '@/features/documents/constants/file-drag';
 import { scoreDocumentAction } from '@/app/[locale]/(panel)/knowledge/optimize-document/actions';
-import { updateFilePiiPolicy, reembedFile } from '@/app/actions';
+
 import { statusToast } from '@/app/lib/utils/toast';
 import { useRouter } from '@/i18n/routing';
 
@@ -52,7 +53,14 @@ import { useRouter } from '@/i18n/routing';
 const COLUMN = {
   select: 'w-7',
   name: 'w-auto',
-  size: 'w-[76px]',
+  /*
+    88px, not the 76 phase 7 specified. `prettyBytes` renders "2.41 MB" —
+    seven characters plus the cell's 24px of padding — and 76px left it one or
+    two pixels short, so every file over a megabyte wrapped its unit onto a
+    second line and took its row to two. A table whose rows are 34px except
+    when they are 48px is not a table you can scan down.
+  */
+  size: 'w-[88px]',
   added: 'w-[128px]',
   status: 'w-[108px]',
   policy: 'w-[168px]',
@@ -62,18 +70,34 @@ const COLUMN = {
 /**
  * 30px, 11px uppercase display, per the phase 7 header rule.
  *
- * The labels are `column-*`, not the `sort-*` strings the grid's sort menu
- * uses. The two read in different frames: the menu says "Sort: Date Added",
- * the column says ADDED, and phase 7 names the columns FILE NAME · SIZE ·
- * ADDED · STATUS · PII POLICY. One set of words could not be both without
- * one of them reading like a sentence fragment.
+ * The labels are `column-*`, not the `sort-*` strings the sort chip uses. The
+ * two read in different frames: the chip says "Sort: Date Added", the column
+ * says ADDED, and phase 7 names the columns FILE NAME · SIZE · ADDED · STATUS
+ * · PII POLICY. One set of words could not be both without one of them
+ * reading like a sentence fragment.
+ *
+ * Sticky, so the column names stay put while the rows move under them. Three
+ * details make that work and are easy to undo by accident:
+ *
+ * - `bg-card`, because a transparent sticky header lets the rows show through
+ *   it as they pass.
+ * - `sticky` on each `<th>` rather than on `<thead>` or its `<tr>` — the row
+ *   and section variants are not honoured consistently across engines.
+ * - the table is `border-separate border-spacing-0`, not `border-collapse`.
+ *   Under collapse the resolved border belongs to the *table* and is painted
+ *   in the table's layer, so it does not travel with the sticky cell and the
+ *   header's hairline disappears the moment you scroll. Geometry is
+ *   unchanged because every rule in this table is a single `border-b`, so
+ *   nothing doubles up.
+ *
+ * `z-10` sits below Radix's portalled row menus, which render at body level.
  */
 function Th({ className, ...props }: React.ComponentPropsWithoutRef<'th'>) {
   return (
     <th
       {...props}
       className={cn(
-        'h-[30px] border-b border-paper-200 px-3 text-left align-middle font-display text-[11px] font-medium uppercase tracking-wide text-muted-foreground dark:border-paper-800',
+        'sticky top-0 z-10 h-[30px] border-b border-paper-200 bg-card px-3 text-left align-middle font-display text-[11px] font-medium uppercase tracking-wide text-muted-foreground dark:border-paper-800',
         className,
       )}
     />
@@ -128,6 +152,10 @@ type Props = {
   isFilteredEmpty?: boolean;
   onResetFilters?: () => void;
   canManageOrg?: boolean;
+  /** See `FileRowProps.onDragFiles`. */
+  onDragFiles?: (fileId: string) => string[];
+  /** See `FileRowProps.onChangeRowPolicy`. */
+  onChangeRowPolicy?: (fileId: string) => void;
 } & SelectionProps;
 
 export type UserFileTypeSafe = UserFileType & {
@@ -149,6 +177,19 @@ type FileRowProps = {
   onToggleFile?: (id: string) => void;
   onPreviewFile?: (file: UserFileTypeSafe) => void;
   canManageOrg?: boolean;
+  /**
+   * Starts a move: hands back the ids this drag should carry. The row does
+   * not decide that on its own — dragging a row that is part of a selection
+   * moves the whole selection, and only the component holding the selection
+   * knows what that is.
+   */
+  onDragFiles?: (fileId: string) => string[];
+  /**
+   * Opens the confirmation dialog for this file's PII policy. Absent for
+   * anyone who may not change it, so the menu item is missing rather than
+   * present and disabled.
+   */
+  onChangeRowPolicy?: (fileId: string) => void;
 };
 
 export type ModalStateProps = {
@@ -199,20 +240,12 @@ const FileRow = ({
   onToggleFile,
   onPreviewFile,
   canManageOrg,
+  onDragFiles,
+  onChangeRowPolicy,
 }: FileRowProps) => {
   const [isLoading] = useState(false);
   const [isScoringLoading, setIsScoringLoading] = useState(false);
-  const [isPiiUpdating, setIsPiiUpdating] = useState(false);
-  const savedPiiPolicy = useRef<PiiPolicyValue>(
-    (file.piiPolicy as PiiPolicyValue) ?? 'TOXIC_ONLY',
-  );
-  const [currentPiiPolicy, setCurrentPiiPolicy] = useState<PiiPolicyValue>(
-    (file.piiPolicy as PiiPolicyValue) ?? 'TOXIC_ONLY',
-  );
-  const [isReembedding, setIsReembedding] = useState(false);
   const tBulkBar = useTranslations('bulk-action-bar');
-  const tPii = useTranslations('pii-policy');
-  const tTable = useTranslations('files-table');
   const { infoToast, errorToast } = statusToast();
   const router = useRouter();
 
@@ -281,10 +314,24 @@ const FileRow = ({
         fileName={file.fileName}
         isLoading={deleteLoading}
       />
+      {/*
+        Draggable onto a folder in the rail, which files it there.
+
+        A shortcut, never the only route: "Move" stays in the row's menu and
+        on the selection bar, because a drag is unavailable to a keyboard and
+        awkward on a touch screen.
+      */}
       <tr
         className={`group text-sm cursor-pointer hover:bg-muted dark:hover:bg-muted${isSelected ? ' bg-accent/20' : ''}`}
         data-testid={`file-row-${file.id}`}
         onClick={() => onPreviewFile?.(file)}
+        draggable={onDragFiles !== undefined}
+        onDragStart={(event) => {
+          if (!onDragFiles) {
+            return;
+          }
+          setDraggedFileIds(event.dataTransfer, onDragFiles(file.id));
+        }}
       >
         {onToggleFile && (
           <Td className="pr-0">
@@ -379,10 +426,15 @@ const FileRow = ({
             <RagScoreBadge metadata={file.metadata} />
           </span>
         </Td>
-        <Td className="text-right tabular-nums text-muted-foreground">
+        {/*
+          `whitespace-nowrap` on both, as the belt to the column widths'
+          braces. A wrapped number is a taller row, and a taller row is a
+          broken rhythm — which is the one thing this table is for.
+        */}
+        <Td className="whitespace-nowrap text-right tabular-nums text-muted-foreground">
           {prettyBytes(fileSize)}
         </Td>
-        <Td className="text-right tabular-nums text-muted-foreground">
+        <Td className="whitespace-nowrap text-right tabular-nums text-muted-foreground">
           {formattedCreatedAt}
         </Td>
         <Td>
@@ -392,53 +444,29 @@ const FileRow = ({
           />
         </Td>
         {canManageOrg === true && (
-          <Td onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-2">
-              <PiiPolicySelect
-                value={currentPiiPolicy}
-                disabled={isPiiUpdating || isReembedding}
-                compact
-                onChange={async (policy) => {
-                  setIsPiiUpdating(true);
-                  try {
-                    await updateFilePiiPolicy(file.id, policy as any);
-                    setCurrentPiiPolicy(policy);
-                  } catch {
-                    errorToast({ message: 'Failed to update PII policy' });
-                  } finally {
-                    setIsPiiUpdating(false);
-                  }
-                }}
-              />
-              {currentPiiPolicy !== savedPiiPolicy.current && (
-                <Tooltip
-                  id={`pii-reembed-tooltip-${file.id}`}
-                  content={tPii('inline-edit-tooltip')}
-                  place="top"
-                >
-                  <button
-                    type="button"
-                    disabled={isReembedding}
-                    onClick={async () => {
-                      setIsReembedding(true);
-                      try {
-                        await reembedFile(file.id);
-                        infoToast({ message: tPii('reembed-success') });
-                        savedPiiPolicy.current = currentPiiPolicy;
-                        router.refresh();
-                      } catch {
-                        errorToast({ message: tPii('reembed-error') });
-                      } finally {
-                        setIsReembedding(false);
-                      }
-                    }}
-                    className="shrink-0 rounded px-2 py-1 text-xs font-medium bg-brand-600 text-primary-foreground hover:bg-brand-700 disabled:opacity-50 whitespace-nowrap"
-                  >
-                    {isReembedding ? '…' : tTable('reembed')}
-                  </button>
-                </Tooltip>
-              )}
-            </div>
+          /*
+            The policy, not a control for it.
+
+            This cell used to hold a live select, so a file's masking could
+            change from a stray click in a menu nobody meant to open — no
+            confirmation, and nothing said about the text already indexed
+            under the old policy. It reads now, and changing it is an item in
+            the row's menu behind a dialog, the same deliberate step Delete
+            gets. Panel rule 12 already says every row action belongs in that
+            menu; this was the one that had climbed out of it.
+          */
+          <Td>
+            {/*
+              Rendered only when the policy is actually there. The column is
+              NOT NULL with a default, so in practice it always is — but the
+              contract type says `PiiPolicy | null | undefined`, and casting
+              that away would hand `PiiPolicyBadge` an undefined key to index
+              its tint and label maps with. An empty cell is the honest answer
+              if a query ever stops selecting the field.
+            */}
+            {file.piiPolicy ? (
+              <PiiPolicyBadge piiPolicy={file.piiPolicy} compact />
+            ) : null}
           </Td>
         )}
         <Td className="text-right" onClick={(e) => e.stopPropagation()}>
@@ -454,6 +482,7 @@ const FileRow = ({
                 : undefined
             }
             isScoringLoading={isScoringLoading}
+            onChangePolicy={onChangeRowPolicy}
           />
         </Td>
       </tr>
@@ -486,6 +515,8 @@ export const UserFilesTable = ({
   isFilteredEmpty = false,
   onResetFilters,
   canManageOrg,
+  onDragFiles,
+  onChangeRowPolicy,
 }: Props & ComponentProps<'table'>) => {
   const t = useTranslations('files-table');
   const tBulkBar = useTranslations('bulk-action-bar');
@@ -567,9 +598,27 @@ export const UserFilesTable = ({
       squeezing. Below 840px the name column would otherwise be the one that
       gives, and a file name that has to be guessed at is the one thing this
       table exists to show.
+
+      This wrapper is also the page's *only* vertical scroller. The toolbar
+      above it and the pagination strip below it are its siblings and stay
+      put; `min-h-0 flex-1` is what makes it take the height that is left
+      instead of the height of its rows. `overflow-x-auto overflow-y-auto`
+      rather than `overflow-auto`: the two are equivalent to the browser, but
+      the explicit pair is what `sticky` on the header resolves against and
+      what the grid test asserts.
+
+      `border-separate` is load-bearing for that sticky header — see the
+      comment on `Th`.
+
+      Deliberately no `overscroll-contain`. Below `lg` the shell has no fixed
+      height, so this box grows to its rows and never scrolls — yet it is
+      still a scroll container, and `contain` on one of those can stop a
+      wheel from chaining out to the page that *does* scroll. At `lg` the
+      page cannot scroll at all, so containment has nothing to prevent. It
+      is a risk on one breakpoint and a no-op on the other.
     */
-    <div className="relative overflow-x-auto">
-      <table className="w-full min-w-[840px] table-fixed border-collapse text-sm [&_tbody_tr:last-child_td]:border-b-0">
+    <div className="relative min-h-0 flex-1 overflow-x-auto overflow-y-auto">
+      <table className="w-full min-w-[840px] table-fixed border-separate border-spacing-0 text-sm [&_tbody_tr:last-child_td]:border-b-0">
         <colgroup>
           {showCheckboxes && <col className={COLUMN.select} />}
           <col className={COLUMN.name} />
@@ -745,6 +794,8 @@ export const UserFilesTable = ({
               onToggleFile={onToggleFile}
               onPreviewFile={onPreviewFile}
               canManageOrg={canManageOrg}
+              onDragFiles={onDragFiles}
+              onChangeRowPolicy={onChangeRowPolicy}
             />
           ))}
         </tbody>

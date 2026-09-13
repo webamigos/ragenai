@@ -68,6 +68,7 @@ import type {
   PaginatedUserFilesResult,
   UserFilesSort,
   UserFilesSortDir,
+  DocumentFolderItem,
 } from '@/features/documents/contracts/document.types';
 import type {
   FileType,
@@ -75,6 +76,7 @@ import type {
   PiiPolicy,
 } from '@/generated/prisma/browser';
 import { clearFileFilterParams } from '@/features/documents/constants/file-filters';
+import { isFileDrag } from '@/features/documents/constants/file-drag';
 import { useOrgFeature } from '@/app/hooks/useOrgFeatures';
 
 const BULK_PROGRESS_THRESHOLD = 10;
@@ -100,6 +102,18 @@ type FileListWrapperWithDataProps = {
    */
   heading?: React.ReactNode;
   canManageOrg?: boolean;
+  /**
+   * The folders directly inside the one being shown, rendered ahead of the
+   * files in both views.
+   *
+   * The folder filter is an exact match, not a subtree: standing in
+   * "Contracts" you see the files filed in Contracts and nothing from
+   * "Contracts / 2026". Without these, the only way into a subfolder is the
+   * rail — and the rail is the one thing on this page that does not say what
+   * it is nested inside.
+   */
+  subfolders?: DocumentFolderItem[];
+  onNavigateFolder?: (folderId: string) => void;
 };
 
 export const FileListWrapperWithData = ({
@@ -112,6 +126,8 @@ export const FileListWrapperWithData = ({
   topBarLeft,
   heading,
   canManageOrg,
+  subfolders,
+  onNavigateFolder,
 }: FileListWrapperWithDataProps) => {
   const { successToast, errorToast, warningToast } = statusToast();
   const tSuccess = useTranslations('success-toast');
@@ -152,6 +168,15 @@ export const FileListWrapperWithData = ({
   const [isBulkMoveOpen, setIsBulkMoveOpen] = useState(false);
   const [isBulkShareOpen, setIsBulkShareOpen] = useState(false);
   const [isBulkPolicyOpen, setIsBulkPolicyOpen] = useState(false);
+  /**
+   * The one file whose policy is being changed from its row menu, or `null`
+   * when the dialog was opened from the selection bar.
+   *
+   * One dialog for both. A row and a selection ask the same question — which
+   * policy, and do you want what is already indexed reprocessed under it —
+   * and a second dialog would be a second set of words for it.
+   */
+  const [policyRowFileId, setPolicyRowFileId] = useState<string | null>(null);
   const [isBulkLoading, setIsBulkLoading] = useState(false);
   const [previewFile, setPreviewFile] = useState<UserFileTypeSafe | null>(null);
   const [previewIndex, setPreviewIndex] = useState<number>(0);
@@ -267,6 +292,40 @@ export const FileListWrapperWithData = ({
   const fileIds = useMemo(
     () => Array.from(bulk.selectedIds),
     [bulk.selectedIds],
+  );
+
+  /**
+   * What a drag started on one row should carry.
+   *
+   * Dragging a row that is part of the current selection moves the whole
+   * selection; dragging one outside it moves just that row and leaves the
+   * selection alone. That is what every file manager does, and the
+   * alternative — always moving one file — makes the selection checkboxes
+   * look like they do nothing.
+   */
+  /**
+   * Open the policy dialog for one row.
+   *
+   * Handed only to someone who may change it — `canManageOrg` — so the item
+   * is absent rather than disabled for everyone else.
+   */
+  const policyRowFile = policyRowFileId
+    ? filteredFiles.find((file) => file.id === policyRowFileId)
+    : undefined;
+
+  const handleChangeRowPolicy = useCallback((fileId: string) => {
+    setPolicyRowFileId(fileId);
+    setIsBulkPolicyOpen(true);
+  }, []);
+
+  const { isSelected: isFileSelected } = bulk;
+  const handleDragFiles = useCallback(
+    (fileId: string) =>
+      isFileSelected(fileId) && fileIds.length > 0 ? fileIds : [fileId],
+    // `bulk` itself is a fresh object every render — depending on it would
+    // rebuild this callback each time and defeat the memo. `isSelected` is
+    // the stable half.
+    [isFileSelected, fileIds],
   );
 
   const handleBulkDelete = async () => {
@@ -421,11 +480,13 @@ export const FileListWrapperWithData = ({
     policy: PiiPolicyValue,
     reprocess: boolean,
   ) => {
+    // A row menu names its own file; the selection bar means the selection.
+    const targetIds = policyRowFileId ? [policyRowFileId] : fileIds;
     setIsBulkLoading(true);
-    const count = fileIds.length;
+    const count = targetIds.length;
     try {
       const policyResult = await bulkUpdatePiiPolicyAction(
-        fileIds,
+        targetIds,
         policy as PiiPolicy,
       );
 
@@ -445,6 +506,7 @@ export const FileListWrapperWithData = ({
       }
 
       setIsBulkPolicyOpen(false);
+      setPolicyRowFileId(null);
 
       // Only the files that took the new policy are worth reprocessing —
       // reparsing the ones that failed to change would spend the work and
@@ -550,6 +612,9 @@ export const FileListWrapperWithData = ({
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
+      if (isFileDrag(e.dataTransfer)) {
+        return;
+      }
       e.preventDefault();
       setIsDragOver(false);
       if (e.dataTransfer.files.length > 0) {
@@ -568,7 +633,16 @@ export const FileListWrapperWithData = ({
     router.push(qs ? `${pathname}?${qs}` : pathname);
   }, [router, pathname]);
 
+  /*
+    A row being dragged onto a folder passes over this zone on its way there.
+    Without the check it lights up as "drop files to upload" the whole time,
+    which promises the wrong operation — and calling `preventDefault` on it
+    would make this zone a drop target for a move it cannot perform.
+  */
   const handleDragOver = (e: React.DragEvent) => {
+    if (isFileDrag(e.dataTransfer)) {
+      return;
+    }
     e.preventDefault();
     setIsDragOver(true);
   };
@@ -590,11 +664,23 @@ export const FileListWrapperWithData = ({
   }
 
   const hasServerContent = result.items.length > 0;
+  /*
+    A folder holding only folders is not an empty folder.
+
+    The folder filter is an exact match, so standing in "Contracts" with
+    everything filed one level down in "Contracts / 2026" returns no files at
+    all. Counting that as empty put the upload prompt over the one thing the
+    page had to show and dropped the subfolder rows with it — the way down was
+    rendered, then hidden. Both views already know what to do with folders and
+    no files; the gate above them did not.
+  */
+  const hasSubfolders = (subfolders?.length ?? 0) > 0;
+  const hasContent = hasServerContent || hasSubfolders;
   const hasActiveFilters =
     selectedFileTypes.length > 0 ||
     selectedStatuses.length > 0 ||
     selectedPolicies.length > 0;
-  const isTrulyEmpty = !hasServerContent && !hasActiveFilters;
+  const isTrulyEmpty = !hasContent && !hasActiveFilters;
   const isFilteredEmpty = !hasServerContent && hasActiveFilters;
   const isSearchEmpty = hasServerContent && filteredFiles.length === 0;
 
@@ -726,8 +812,23 @@ export const FileListWrapperWithData = ({
         onDismiss={() => setBulkProgress({ status: 'idle' })}
       />
 
+      {/*
+        The drop target, and nothing else. It used to be the page's scroller
+        too — one `overflow-y-auto` box with a 2px dashed edge and an 8px
+        radius, holding the toolbar, the table and the pager together — which
+        put a second scrollbar and a second rounded border inside a panel that
+        is already a card, and read as an embedded widget rather than as the
+        page. The scrolling moved down to the table and the grid; this element
+        keeps the handlers and the highlight.
+
+        Still `border-dashed`, transparent at rest: the border reserves its own
+        space, so the highlight appearing on drag-over tints and outlines
+        without shifting a single row. 1px rather than 2px — panels here are
+        line drawings.
+      */}
       <div
-        className={`min-h-0 flex-1 overflow-y-auto rounded-lg border-2 border-dashed transition-colors ${
+        data-testid="documents-drop-zone"
+        className={`relative flex min-h-0 flex-1 flex-col rounded-md border border-dashed transition-colors ${
           isDragOver && !isSharedView
             ? 'bg-brand-50 border-brand-300 dark:bg-brand-900/20 dark:border-brand-600'
             : 'border-transparent'
@@ -771,7 +872,7 @@ export const FileListWrapperWithData = ({
             className="py-20"
           />
         )}
-        {(hasServerContent || isFilteredEmpty) && layoutMode === 'grid' && (
+        {(hasContent || isFilteredEmpty) && layoutMode === 'grid' && (
           <DocumentsGridWithFilters
             result={result}
             sort={sort}
@@ -800,7 +901,9 @@ export const FileListWrapperWithData = ({
                 showModal={showModal}
                 removeFile={removeFile}
                 files={filteredFiles}
-                subfolders={[]}
+                subfolders={subfolders ?? []}
+                onNavigateFolder={onNavigateFolder}
+                onDragFiles={handleDragFiles}
                 toggleModal={toggleModal}
                 handleDelete={handleDelete}
                 isSelected={bulk.isSelected}
@@ -841,10 +944,16 @@ export const FileListWrapperWithData = ({
             )}
           </DocumentsGridWithFilters>
         )}
-        {(hasServerContent || isFilteredEmpty) && layoutMode === 'list' && (
+        {(hasContent || isFilteredEmpty) && layoutMode === 'list' && (
           <DocumentsTableWithFilters
             result={result}
             files={filteredFiles}
+            subfolders={subfolders}
+            onNavigateFolder={onNavigateFolder}
+            onDragFiles={handleDragFiles}
+            onChangeRowPolicy={
+              canManageOrg === true ? handleChangeRowPolicy : undefined
+            }
             sort={sort}
             dir={dir}
             selectedFileTypes={selectedFileTypes}
@@ -956,8 +1065,13 @@ export const FileListWrapperWithData = ({
       <BulkPolicyDialog
         isOpen={isBulkPolicyOpen}
         isLoading={isBulkLoading}
-        count={bulk.selectedCount}
-        onClose={() => setIsBulkPolicyOpen(false)}
+        count={policyRowFileId ? 1 : bulk.selectedCount}
+        fileName={policyRowFile?.fileName}
+        initialPolicy={policyRowFile?.piiPolicy ?? undefined}
+        onClose={() => {
+          setIsBulkPolicyOpen(false);
+          setPolicyRowFileId(null);
+        }}
         onConfirm={handleBulkChangePolicy}
       />
 

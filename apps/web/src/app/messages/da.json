@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "manglende bruger-id",
     "error-during-deleting-file": "Fejl under sletning af dokumentet",
+    "error-during-moving-file": "Fejl under flytning af dokumentet",
     "fetching-docs-error": "Fejl under hentning af dokumenter",
     "no-files": "Ingen filer"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Mislykkedes",
     "status-uploading": "Uploader",
     "score-rag": "RAG-score",
+    "optimize-rag": "Optimér til RAG",
+    "change-pii-policy": "Skift persondatapolitik",
     "sort-file-name": "Filnavn",
     "sort-file-size": "Filstørrelse",
     "sort-created": "Tilføjelsesdato",
@@ -1276,7 +1279,6 @@
     "sort-label": "Sorter",
     "sort-dir-asc": "Stigende",
     "sort-dir-desc": "Faldende",
-    "reembed": "Anvend politik",
     "filter-clear": "Ryd filteret {filter}",
     "filter-pii-policy": "Politik",
     "filter-pii-policy-all": "Alle"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Skift PII-politik",
     "description": "Én politik for alle de valgte filer: {count, plural, one {# fil} other {# filer}}.",
+    "description-single": "Ændring af politikken for “{fileName}”. Den allerede indekserede tekst forbliver som den er, indtil filen behandles igen.",
     "apply": "Anvend ({count, plural, one {# fil} other {# filer}})",
     "applying": "Anvender...",
     "reprocess-label": "Behandl igen nu",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Følsomme data",
     "badge-strict": "Alle personoplysninger",
     "pii-policy-label": "Politik for maskering af personoplysninger",
-    "inline-edit-tooltip": "Politikken er gemt. Klik på \"Anvend politik\" for at genbehandle dokumentet med de nye maskeringsindstillinger.",
     "reembed-success": "Dokumentet vil blive genbehandlet med den nye politik",
     "reembed-error": "Kunne ikke anvende politikken",
     "info-page-title": "Politik for personoplysninger",

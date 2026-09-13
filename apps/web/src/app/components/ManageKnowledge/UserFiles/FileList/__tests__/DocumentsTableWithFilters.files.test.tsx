@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextIntlClientProvider } from 'next-intl';
 import { DocumentsTableWithFilters } from '../DocumentsTableWithFilters';
@@ -371,5 +372,80 @@ describe('DocumentsTableWithFilters — the filter row', () => {
     renderComponent({ result, selectedStatuses: [EmbeddingStatus.STARTED] });
 
     expect(screen.getByText('Clear all')).toBeInTheDocument();
+  });
+
+  /**
+   * The sort chip used to render in the grid only — the table has sortable
+   * column headers, so a second control there looked redundant — and the
+   * toolbar gained and lost a control as you toggled the view, moving every
+   * chip beside it.
+   */
+  it('carries the sort chip in the table view too, so the toolbar does not change shape', () => {
+    renderComponent({ result: makeResult([makeFile('a', 'alfa.pdf')]) });
+
+    expect(screen.getByTestId('sort-chip')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Sort:/ })).toHaveTextContent(
+      'Sort: Date Added',
+    );
+  });
+
+  it('writes the chip’s column and direction to the URL, and goes back to page one', async () => {
+    const user = userEvent.setup();
+    renderComponent({
+      result: { ...makeResult([makeFile('a', 'alfa.pdf')]), page: 3 },
+    });
+
+    await user.click(screen.getByRole('button', { name: /^Sort:/ }));
+    await user.click(screen.getByRole('button', { name: /File Size — Asc/i }));
+
+    expect(mockRouterPush).toHaveBeenCalledWith(
+      expect.stringContaining('sort=fileSize'),
+    );
+    expect(mockRouterPush).toHaveBeenCalledWith(
+      expect.stringContaining('dir=asc'),
+    );
+    // A different sort renumbers the pages, so page 3 of the old order is not
+    // page 3 of the new one.
+    expect(mockRouterPush).toHaveBeenCalledWith(
+      expect.stringContaining('page=1'),
+    );
+  });
+
+  /**
+   * The structural half of "only the rows scroll".
+   *
+   * The toolbar, the selection bar and the pagination strip used to live
+   * inside the same `overflow-y-auto` box as the table, so the filters you
+   * were working with and the pager telling you how many rows there were both
+   * scrolled away with the rows — on a full page the pager sat under the fold.
+   * They are siblings of the scroller now, and this is the assertion that
+   * stops them drifting back inside it.
+   */
+  it('keeps the toolbar and the pager outside the scrolling region', () => {
+    const { container } = renderComponent({
+      result: {
+        ...makeResult([makeFile('a', 'alfa.pdf')]),
+        page: 1,
+        pageSize: 25,
+        totalCount: 60,
+        totalPages: 3,
+      },
+      search: <input aria-label="Search file names" />,
+      selectionBar: <div data-testid="selection-bar">2 selected</div>,
+    });
+
+    const table = container.querySelector('table')!;
+    const scroller = table.parentElement!;
+    expect(scroller.className).toContain('overflow-y-auto');
+
+    for (const chrome of [
+      screen.getByRole('textbox', { name: 'Search file names' }),
+      screen.getByTestId('sort-chip'),
+      screen.getByTestId('filter-file-type'),
+      screen.getByTestId('selection-bar'),
+      screen.getByText('1-25 of 60'),
+    ]) {
+      expect(scroller.contains(chrome)).toBe(false);
+    }
   });
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { FoldersList } from '../FoldersList';
 import type { DocumentFolderItem } from '@/features/documents/contracts/document.types';
@@ -262,5 +262,83 @@ describe('usage block', () => {
     expect(
       screen.getByRole('progressbar', { name: 'Storage' }),
     ).toHaveAttribute('aria-valuenow', '100');
+  });
+});
+
+/**
+ * The rail is where a move lands, because it is the only place on the page
+ * showing every folder at once — including the ones you are not standing in.
+ */
+describe('dropping files onto a folder', () => {
+  const RAGEN_TYPE = 'application/x-ragen-file';
+
+  function fileDrag(ids: string[] = ['file-1']) {
+    return {
+      types: [RAGEN_TYPE],
+      dropEffect: '',
+      getData: (type: string) =>
+        type === RAGEN_TYPE ? JSON.stringify(ids) : '',
+    };
+  }
+
+  const folderRow = () => screen.getByRole('button', { name: /Test Folder/ });
+  const allFilesRow = () => screen.getByRole('button', { name: /All Files/ });
+
+  it('files the dropped documents into the folder they landed on', () => {
+    const onDropFiles = vi.fn();
+    renderList([makeFolder()], { onDropFiles });
+
+    fireEvent.drop(folderRow(), { dataTransfer: fileDrag(['a', 'b']) });
+
+    expect(onDropFiles).toHaveBeenCalledWith('folder-1', ['a', 'b']);
+  });
+
+  it('takes a document out of its folder when dropped on All files', () => {
+    // The one-gesture route back to unfiled. The row menu's Move opens a
+    // dialog; there is nothing else that clears a folder in a single move.
+    const onDropFiles = vi.fn();
+    renderList([makeFolder()], { onDropFiles });
+
+    fireEvent.drop(allFilesRow(), { dataTransfer: fileDrag(['a']) });
+
+    expect(onDropFiles).toHaveBeenCalledWith(null, ['a']);
+  });
+
+  it('marks the row a move would land on, and only that row', () => {
+    renderList([makeFolder()], { onDropFiles: vi.fn() });
+
+    fireEvent.dragOver(folderRow(), { dataTransfer: fileDrag() });
+
+    expect(folderRow().className).toContain('bg-brand-50');
+    expect(allFilesRow().className).not.toContain('bg-brand-50');
+  });
+
+  it('ignores a file arriving from the desktop — that is an upload, not a move', () => {
+    const onDropFiles = vi.fn();
+    renderList([makeFolder()], { onDropFiles });
+    const osDrag = { types: ['Files'], dropEffect: '', getData: () => '' };
+
+    fireEvent.dragOver(folderRow(), { dataTransfer: osDrag });
+    expect(folderRow().className).not.toContain('bg-brand-50');
+
+    fireEvent.drop(folderRow(), { dataTransfer: osDrag });
+    expect(onDropFiles).not.toHaveBeenCalled();
+  });
+
+  it('does nothing on a drop that carries no ids', () => {
+    const onDropFiles = vi.fn();
+    renderList([makeFolder()], { onDropFiles });
+
+    fireEvent.drop(folderRow(), { dataTransfer: fileDrag([]) });
+
+    expect(onDropFiles).not.toHaveBeenCalled();
+  });
+
+  it('is inert when the page is not listening for moves', () => {
+    renderList([makeFolder()]);
+
+    fireEvent.dragOver(folderRow(), { dataTransfer: fileDrag() });
+
+    expect(folderRow().className).not.toContain('bg-brand-50');
   });
 });

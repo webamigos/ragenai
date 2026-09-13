@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "användar-id saknas",
     "error-during-deleting-file": "Fel vid borttagning av dokumentet",
+    "error-during-moving-file": "Fel vid flytt av dokumentet",
     "fetching-docs-error": "Fel vid hämtning av dokument",
     "no-files": "Inga filer"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Misslyckades",
     "status-uploading": "Laddar upp",
     "score-rag": "RAG-poäng",
+    "optimize-rag": "Optimera för RAG",
+    "change-pii-policy": "Ändra persondatapolicy",
     "sort-file-name": "Filnamn",
     "sort-file-size": "Filstorlek",
     "sort-created": "Tillagd datum",
@@ -1276,7 +1279,6 @@
     "sort-label": "Sortera",
     "sort-dir-asc": "Stigande",
     "sort-dir-desc": "Fallande",
-    "reembed": "Tillämpa policy",
     "filter-clear": "Rensa filtret {filter}",
     "filter-pii-policy": "Policy",
     "filter-pii-policy-all": "Alla"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Ändra PII-policy",
     "description": "En policy för alla valda filer: {count, plural, one {# fil} other {# filer}}.",
+    "description-single": "Ändrar policyn för ”{fileName}”. Redan indexerad text förblir oförändrad tills filen bearbetas igen.",
     "apply": "Använd ({count, plural, one {# fil} other {# filer}})",
     "applying": "Tillämpar...",
     "reprocess-label": "Bearbeta igen nu",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Känsliga data",
     "badge-strict": "Alla personuppgifter",
     "pii-policy-label": "Policy för maskering av personuppgifter",
-    "inline-edit-tooltip": "Policyn har sparats. Klicka på \"Tillämpa policy\" för att bearbeta om dokumentet med de nya maskeringsinställningarna.",
     "reembed-success": "Dokumentet kommer att bearbetas om med den nya policyn",
     "reembed-error": "Det gick inte att tillämpa policyn",
     "info-page-title": "Policy för personuppgifter",

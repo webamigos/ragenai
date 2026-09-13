@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "chýba ID používateľa",
     "error-during-deleting-file": "Chyba pri mazaní dokumentu",
+    "error-during-moving-file": "Chyba pri presúvaní dokumentu",
     "fetching-docs-error": "Chyba pri načítaní dokumentov",
     "no-files": "Žiadne súbory"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Zlyhalo",
     "status-uploading": "Nahrávanie",
     "score-rag": "RAG skóre",
+    "optimize-rag": "Optimalizovať pre RAG",
+    "change-pii-policy": "Zmeniť zásady pre osobné údaje",
     "sort-file-name": "Názov súboru",
     "sort-file-size": "Veľkosť súboru",
     "sort-created": "Dátum pridania",
@@ -1276,7 +1279,6 @@
     "sort-label": "Zoradiť",
     "sort-dir-asc": "Vzostupne",
     "sort-dir-desc": "Zostupne",
-    "reembed": "Použiť zásadu",
     "filter-clear": "Vymazať filter {filter}",
     "filter-pii-policy": "Zásada",
     "filter-pii-policy-all": "Všetko"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Zmena politiky PII",
     "description": "Jedna politika pre všetky vybrané súbory: {count, plural, one {# súbor} few {# súbory} other {# súborov}}.",
+    "description-single": "Zmena zásad pre „{fileName}“. Už indexovaný text zostane bez zmeny, kým sa súbor znova nespracuje.",
     "apply": "Použiť ({count, plural, one {# súbor} few {# súbory} other {# súborov}})",
     "applying": "Používa sa...",
     "reprocess-label": "Spracovať znova hneď",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Citlivé údaje",
     "badge-strict": "Všetky osobné údaje",
     "pii-policy-label": "Zásada maskovania osobných údajov",
-    "inline-edit-tooltip": "Zásada bola uložená. Kliknite na „Použiť zásadu“ na opätovné spracovanie dokumentu s novým nastavením maskovania.",
     "reembed-success": "Dokument bude znova spracovaný s novou zásadou",
     "reembed-error": "Zásadu sa nepodarilo použiť",
     "info-page-title": "Zásady osobných údajov",

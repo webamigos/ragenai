@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "käyttäjätunnus puuttuu",
     "error-during-deleting-file": "Virhe asiakirjan poistamisessa",
+    "error-during-moving-file": "Virhe asiakirjan siirtämisessä",
     "fetching-docs-error": "Virhe asiakirjojen hakemisessa",
     "no-files": "Ei tiedostoja"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Epäonnistui",
     "status-uploading": "Ladataan",
     "score-rag": "RAG-pisteet",
+    "optimize-rag": "Optimoi RAG:ia varten",
+    "change-pii-policy": "Muuta henkilötietokäytäntöä",
     "sort-file-name": "Tiedoston nimi",
     "sort-file-size": "Tiedoston koko",
     "sort-created": "Lisäyspäivä",
@@ -1276,7 +1279,6 @@
     "sort-label": "Lajittele",
     "sort-dir-asc": "Nouseva",
     "sort-dir-desc": "Laskeva",
-    "reembed": "Käytä käytäntöä",
     "filter-clear": "Tyhjennä suodatin {filter}",
     "filter-pii-policy": "Käytäntö",
     "filter-pii-policy-all": "Kaikki"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Vaihda PII-käytäntö",
     "description": "Yksi käytäntö kaikille valituille tiedostoille: {count, plural, one {# tiedosto} other {# tiedostoa}}.",
+    "description-single": "Muutetaan tiedoston ”{fileName}” käytäntöä. Jo indeksoitu teksti pysyy ennallaan, kunnes tiedosto käsitellään uudelleen.",
     "apply": "Käytä ({count, plural, one {# tiedosto} other {# tiedostoa}})",
     "applying": "Otetaan käyttöön...",
     "reprocess-label": "Käsittele uudelleen heti",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Arkaluontoiset tiedot",
     "badge-strict": "Kaikki henkilötiedot",
     "pii-policy-label": "Henkilötietojen peittokäytäntö",
-    "inline-edit-tooltip": "Käytäntö tallennettu. Napsauta \"Käytä käytäntöä\" käsitelläksesi asiakirjan uudelleen uusilla peittoasetuksilla.",
     "reembed-success": "Asiakirja käsitellään uudelleen uudella käytännöllä",
     "reembed-error": "Käytännön soveltaminen epäonnistui",
     "info-page-title": "Henkilötietokäytäntö",

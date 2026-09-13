@@ -84,7 +84,6 @@ const messages = {
     delete: 'Delete',
     move: 'Move',
     share: 'Share',
-    reembed: 'Re-embed',
   },
   folders: {
     title: 'Folders',
@@ -120,8 +119,12 @@ const messages = {
     'badge-none': 'No masking',
     'badge-toxic-only': 'Toxic only',
     'badge-strict': 'Strict',
-    'inline-edit-tooltip':
-      'Changing the policy does not re-embed the document.',
+    // The compact badge the table renders shows the short form and reads the
+    // long one out, so a fixture without both halves is a fixture the column
+    // cannot render.
+    'tag-none': 'None',
+    'tag-toxic-only': 'Sensitive',
+    'tag-strict': 'All PII',
   },
 };
 
@@ -302,18 +305,27 @@ describe('UserFilesTable — canManageOrg prop', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('wyświetla dropdown PII Policy w wierszu pliku gdy canManageOrg=true i plik ma piiPolicy', () => {
+  /**
+   * The column reads the policy; it does not offer to change it.
+   *
+   * It used to hold a live select, so a data-protection setting could change
+   * from a stray click in a menu nobody meant to open — no confirmation, and
+   * nothing said about the text already indexed under the old policy.
+   * Changing it is an item in the row's menu now, behind a dialog.
+   */
+  it('shows the policy as a badge, not as a control', () => {
     const fileWithPolicy = makeFile({
       piiPolicy: 'STRICT',
     } as Partial<UserFileTypeSafe>);
-    renderTable({
+    const { container } = renderTable({
       files: [fileWithPolicy],
       canManageOrg: true,
     } as Parameters<typeof renderTable>[0]);
-    const select = screen.getByRole('combobox', {
-      name: /pii masking policy/i,
-    });
-    expect(select).toBeInTheDocument();
-    expect(select).toHaveValue('STRICT');
+
+    expect(screen.getByTestId('pii-policy-badge-strict')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('combobox', { name: /pii masking policy/i }),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector('tbody select')).toBeNull();
   });
 });

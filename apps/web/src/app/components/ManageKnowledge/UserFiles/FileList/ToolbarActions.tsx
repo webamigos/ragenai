@@ -11,6 +11,7 @@ import {
   ShareIcon,
   ChartBarIcon,
   SparklesIcon,
+  ShieldCheckIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from '@/i18n/routing';
 import {
@@ -31,6 +32,12 @@ type ToolbarActionsProps = {
   onMove?: (fileId: string) => void;
   onShare?: (fileId: string) => void;
   onScore?: (fileId: string) => void;
+  /**
+   * Opens the confirmation dialog for this file's PII policy. Passed only to
+   * someone who may change it — the item is absent otherwise rather than
+   * disabled, because a disabled item in a menu is a promise you cannot keep.
+   */
+  onChangePolicy?: (fileId: string) => void;
   isScoringLoading?: boolean;
   isLoading: boolean;
 };
@@ -43,6 +50,7 @@ export const ToolbarActions = ({
   onMove,
   onShare,
   onScore,
+  onChangePolicy,
   isScoringLoading,
   isLoading,
 }: ToolbarActionsProps) => {
@@ -102,6 +110,23 @@ export const ToolbarActions = ({
           <DropdownMenuItem onClick={() => onMove(fileId)}>
             <ArrowRightIcon className="size-4" />
             {t('move') || 'Move'}
+          </DropdownMenuItem>
+        )}
+
+        {/*
+          The policy lives here rather than as a control in the row.
+
+          Its column used to hold a live select: three keystrokes from a menu
+          nobody opened on purpose and the file's masking had changed, with no
+          confirmation and nothing said about the text already indexed under
+          the old policy. It is a data-protection setting; it belongs behind
+          the same deliberate step as Delete, with a dialog that says what
+          happens to what is already in the index.
+        */}
+        {fileId && onChangePolicy && (
+          <DropdownMenuItem onClick={() => onChangePolicy(fileId)}>
+            <ShieldCheckIcon className="size-4" />
+            {t('change-pii-policy')}
           </DropdownMenuItem>
         )}
 

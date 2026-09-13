@@ -233,3 +233,114 @@ describe('Breadcrumbs', () => {
     expect(screen.getByText('Last')).toHaveAttribute('aria-current', 'page');
   });
 });
+
+/**
+ * The trail standing in for the page's heading.
+ *
+ * A folder page used to carry two horizontal bands saying where you are: a
+ * heading naming the scope ("All files") and, under it, a breadcrumb naming
+ * the folder you were actually in. Only one of them answered the question.
+ */
+describe('Breadcrumbs — as the page title', () => {
+  beforeEach(() => {
+    mockDesktop();
+    mockGetFolderBreadcrumbs.mockResolvedValue([]);
+  });
+
+  function renderTitle(folderId: string, onNavigate = vi.fn()) {
+    render(
+      <NextIntlClientProvider messages={messages} locale="en">
+        <Breadcrumbs
+          folderId={folderId}
+          onNavigate={onNavigate}
+          variant="title"
+          rootLabel="All Files"
+        />
+      </NextIntlClientProvider>,
+    );
+    return { onNavigate };
+  }
+
+  it('makes the folder you are in the page heading', async () => {
+    mockGetFolderBreadcrumbs.mockResolvedValue([
+      { id: 'f1', name: 'Contracts' },
+      { id: 'f2', name: '2026' },
+    ]);
+    renderTitle('f2');
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+        '2026',
+      ),
+    );
+    // The path in front of it is still the way back out.
+    expect(screen.getByRole('button', { name: 'Contracts' })).toBeVisible();
+  });
+
+  it('calls the root by the active scope, so the trail and the rail agree', async () => {
+    mockGetFolderBreadcrumbs.mockResolvedValue([
+      { id: 'f1', name: 'Contracts' },
+    ]);
+    renderTitle('f1');
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /All Files/ })).toBeVisible(),
+    );
+    // Not "Knowledge Base" — the rail says "All Files", and two names for the
+    // same place is one name too many.
+    expect(screen.queryByText('Knowledge Base')).not.toBeInTheDocument();
+  });
+
+  it('has a heading from the first paint, before the crumbs arrive', () => {
+    // The trail is a round trip away. Until it lands the root *is* the place
+    // you are standing in, so it takes the h1 rather than leaving the page
+    // without one.
+    mockGetFolderBreadcrumbs.mockReturnValue(new Promise(() => {}));
+    renderTitle('f2');
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'All Files',
+    );
+  });
+
+  /*
+    Below `lg` the folder rail is hidden, so the trail is the only way back
+    out of a folder. A heading that is only a heading would make a failed
+    fetch a dead end.
+  */
+  it('leaves the root clickable when the trail never arrives', async () => {
+    const user = userEvent.setup();
+    mockGetFolderBreadcrumbs.mockRejectedValue(new Error('Network error'));
+    const { onNavigate } = renderTitle('f2');
+
+    const root = await screen.findByRole('button', { name: /All Files/ });
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'All Files',
+    );
+
+    await user.click(root);
+    expect(onNavigate).toHaveBeenCalledWith(null);
+  });
+
+  it('does not offer the root as a link while the trail is still loading', () => {
+    mockGetFolderBreadcrumbs.mockReturnValue(new Promise(() => {}));
+    renderTitle('f2');
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'All Files',
+    );
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('leaves exactly one h1 on the page once the trail lands', async () => {
+    mockGetFolderBreadcrumbs.mockResolvedValue([
+      { id: 'f1', name: 'Contracts' },
+      { id: 'f2', name: '2026' },
+    ]);
+    renderTitle('f2');
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1),
+    );
+  });
+});

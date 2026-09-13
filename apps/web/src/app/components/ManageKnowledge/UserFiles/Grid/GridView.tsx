@@ -28,6 +28,8 @@ type GridViewProps = {
   files: UserFileType[];
   subfolders?: DocumentFolderItem[];
   onNavigateFolder?: (folderId: string) => void;
+  /** See `FileRowProps.onDragFiles` in `UserFilesTable`. */
+  onDragFiles?: (fileId: string) => string[];
   isLoading: boolean;
   isError: boolean;
   showModal: ModalStateProps;
@@ -60,6 +62,7 @@ export const GridView = ({
   files,
   subfolders = [],
   onNavigateFolder,
+  onDragFiles,
   isLoading,
   deleteLoading,
   isError,
@@ -157,7 +160,7 @@ export const GridView = ({
   return (
     <>
       {onToggleAll && (
-        <div className="flex items-center gap-2 mb-2 px-1">
+        <div className="flex shrink-0 items-center gap-2 mb-2 px-1">
           <input
             ref={selectAllRef}
             type="checkbox"
@@ -172,7 +175,20 @@ export const GridView = ({
           </span>
         </div>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-4 px-0.5">
+      {/*
+        The grid is the scroller in this view, the way the table's wrapper is
+        in the other: the toolbar above and the pagination strip below are
+        static, and only the cards move.
+
+        `auto-rows-min content-start` keeps the cards at the top of a tall
+        pane. Without them a short grid stretches its rows to fill the height
+        it has just been given, and two files become two very tall cards —
+        rule 5, nothing centres or spreads vertically in a full-height pane.
+
+        No `overscroll-contain` here either — see the note on the table's
+        wrapper for why it is a risk below `lg` and a no-op above it.
+      */}
+      <div className="grid min-h-0 flex-1 auto-rows-min content-start overflow-y-auto grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-0.5 pt-1">
         {subfolders.map((folder) => (
           <button
             key={`folder-${folder.id}`}
@@ -205,6 +221,7 @@ export const GridView = ({
             onShare={onShare}
             onScore={onScore}
             canManageOrg={canManageOrg}
+            onDragFiles={onDragFiles}
           />
         ))}
         {showModal.fileId && (

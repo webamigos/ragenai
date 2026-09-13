@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "Brak id użytkownika",
     "error-during-deleting-file": "Błąd podczas usuwania dokumentu",
+    "error-during-moving-file": "Błąd podczas przenoszenia dokumentu",
     "fetching-docs-error": "Błąd podczas pobierania dokumentów",
     "no-files": "Brak plików"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Błąd",
     "status-uploading": "Wysyłanie",
     "score-rag": "Oceń dla RAG",
+    "optimize-rag": "Optymalizuj dla RAG",
+    "change-pii-policy": "Zmień politykę PII",
     "sort-file-name": "Nazwa pliku",
     "sort-file-size": "Rozmiar",
     "sort-created": "Data dodania",
@@ -1276,7 +1279,6 @@
     "sort-label": "Sortuj",
     "sort-dir-asc": "Rosnąco",
     "sort-dir-desc": "Malejąco",
-    "reembed": "Zastosuj politykę",
     "filter-clear": "Wyczyść filtr {filter}",
     "filter-pii-policy": "Polityka",
     "filter-pii-policy-all": "Wszystkie"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Zmień politykę PII",
     "description": "Jedna polityka dla wszystkich zaznaczonych plików: {count, plural, one {# plik} few {# pliki} many {# plików} other {# pliki}}.",
+    "description-single": "Zmiana polityki dla „{fileName}”. Tekst już zaindeksowany zostaje bez zmian, dopóki plik nie zostanie przetworzony ponownie.",
     "apply": "Zastosuj ({count, plural, one {# plik} few {# pliki} many {# plików} other {# pliki}})",
     "applying": "Stosowanie...",
     "reprocess-label": "Przetwórz ponownie od razu",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Dane wrażliwe",
     "badge-strict": "Wszystkie dane os.",
     "pii-policy-label": "Polityka maskowania PII",
-    "inline-edit-tooltip": "Polityka zapisana. Kliknij \"Zastosuj politykę\", aby ponownie przetworzyć dokument z nowymi ustawieniami maskowania.",
     "reembed-success": "Dokument zostanie ponownie przetworzony z nową polityką",
     "reembed-error": "Nie udało się zastosować polityki",
     "info-page-title": "Polityka PII",

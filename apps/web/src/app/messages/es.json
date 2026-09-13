@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "falta el id de usuario",
     "error-during-deleting-file": "Error al eliminar el documento",
+    "error-during-moving-file": "Error al mover el documento",
     "fetching-docs-error": "Error al obtener los documentos",
     "no-files": "Sin archivos"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Fallido",
     "status-uploading": "Subiendo",
     "score-rag": "Puntuación para RAG",
+    "optimize-rag": "Optimizar para RAG",
+    "change-pii-policy": "Cambiar la política de datos personales",
     "sort-file-name": "Nombre del archivo",
     "sort-file-size": "Tamaño del archivo",
     "sort-created": "Fecha de adición",
@@ -1276,7 +1279,6 @@
     "sort-label": "Ordenar",
     "sort-dir-asc": "Ascendente",
     "sort-dir-desc": "Descendente",
-    "reembed": "Aplicar política",
     "filter-clear": "Borrar el filtro {filter}",
     "filter-pii-policy": "Política",
     "filter-pii-policy-all": "Todos"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Cambiar política de PII",
     "description": "Una sola política para todos los archivos seleccionados: {count, plural, one {# archivo} other {# archivos}}.",
+    "description-single": "Cambio de la política de «{fileName}». El texto ya indexado permanece igual hasta que el archivo se vuelva a procesar.",
     "apply": "Aplicar ({count, plural, one {# archivo} other {# archivos}})",
     "applying": "Aplicando...",
     "reprocess-label": "Reprocesar ahora",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Datos sensibles",
     "badge-strict": "Todos los datos personales",
     "pii-policy-label": "Política de enmascaramiento de datos personales",
-    "inline-edit-tooltip": "Política guardada. Haz clic en \"Aplicar política\" para volver a procesar el documento con la nueva configuración de enmascaramiento.",
     "reembed-success": "El documento se volverá a procesar con la nueva política",
     "reembed-error": "Error al aplicar la política",
     "info-page-title": "Política de datos personales",

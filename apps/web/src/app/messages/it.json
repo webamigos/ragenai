@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "ID utente mancante",
     "error-during-deleting-file": "Errore durante l'eliminazione del documento",
+    "error-during-moving-file": "Errore durante lo spostamento del documento",
     "fetching-docs-error": "Errore durante il recupero dei documenti",
     "no-files": "Nessun file"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Non riuscito",
     "status-uploading": "Caricamento in corso",
     "score-rag": "Punteggio RAG",
+    "optimize-rag": "Ottimizza per RAG",
+    "change-pii-policy": "Modifica i criteri sui dati personali",
     "sort-file-name": "Nome del file",
     "sort-file-size": "Dimensione del file",
     "sort-created": "Data di aggiunta",
@@ -1276,7 +1279,6 @@
     "sort-label": "Ordina",
     "sort-dir-asc": "Crescente",
     "sort-dir-desc": "Decrescente",
-    "reembed": "Applica politica",
     "filter-clear": "Cancella il filtro {filter}",
     "filter-pii-policy": "Criterio",
     "filter-pii-policy-all": "Tutti"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Cambia criterio PII",
     "description": "Un solo criterio per tutti i file selezionati: {count, plural, one {# file} other {# file}}.",
+    "description-single": "Modifica dei criteri per “{fileName}”. Il testo già indicizzato resta invariato finché il file non viene rielaborato.",
     "apply": "Applica ({count, plural, one {# file} other {# file}})",
     "applying": "Applicazione...",
     "reprocess-label": "Rielabora ora",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Dati sensibili",
     "badge-strict": "Tutti i dati personali",
     "pii-policy-label": "Politica di mascheramento dei dati personali",
-    "inline-edit-tooltip": "Politica salvata. Clicca su \"Applica politica\" per rielaborare il documento con le nuove impostazioni di mascheramento.",
     "reembed-success": "Il documento verrà rielaborato con la nuova politica",
     "reembed-error": "Impossibile applicare la politica",
     "info-page-title": "Politica sui dati personali",

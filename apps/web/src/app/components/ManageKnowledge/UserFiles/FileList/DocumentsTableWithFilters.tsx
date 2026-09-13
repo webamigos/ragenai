@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
-import { useOnClickOutside } from '@/app/hooks/useOnClickOutside';
+import { useCallback } from 'react';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { useTranslations } from 'next-intl';
 import {
@@ -35,6 +34,7 @@ import { UserFilesTable } from './UserFilesTable';
 import { FileTypeFilterDropdown } from './FileTypeFilterDropdown';
 import { EmbeddingStatusFilterDropdown } from './EmbeddingStatusFilterDropdown';
 import { PiiPolicyFilterDropdown } from './PiiPolicyFilterDropdown';
+import { SortChip } from './SortChip';
 import { clearFileFilterParams } from '@/features/documents/constants/file-filters';
 
 function buildUrl(
@@ -114,6 +114,8 @@ type CommonProps = {
 type DocumentsTableWithFiltersProps = CommonProps & {
   subfolders?: DocumentFolderItem[];
   onNavigateFolder?: (folderId: string) => void;
+  onDragFiles?: (fileId: string) => string[];
+  onChangeRowPolicy?: (fileId: string) => void;
 };
 
 type DocumentsGridWithFiltersProps = Pick<
@@ -131,82 +133,6 @@ type DocumentsGridWithFiltersProps = Pick<
   children: React.ReactNode;
 };
 
-const SORT_COLUMNS: { value: UserFilesSort; labelKey: string }[] = [
-  { value: 'fileName', labelKey: 'sort-file-name' },
-  { value: 'createdAt', labelKey: 'sort-created' },
-  { value: 'fileSize', labelKey: 'sort-file-size' },
-  { value: 'fileType', labelKey: 'sort-file-type' },
-];
-
-function SortDropdown({
-  sort,
-  dir,
-  onSort,
-}: {
-  sort: UserFilesSort;
-  dir: UserFilesSortDir;
-  onSort: (col: UserFilesSort, newDir: UserFilesSortDir) => void;
-}) {
-  const t = useTranslations('files-table');
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useOnClickOutside(ref, () => setOpen(false));
-
-  const activeLabel =
-    SORT_COLUMNS.find((c) => c.value === sort)?.labelKey ?? 'sort-file-name';
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted dark:bg-muted dark:hover:bg-paper-700"
-      >
-        {t('sort-label')}: {t(activeLabel as Parameters<typeof t>[0])}
-        {dir === 'asc' ? (
-          <ChevronUpIcon className="ml-1 size-3.5" />
-        ) : (
-          <ChevronDownIcon className="ml-1 size-3.5" />
-        )}
-      </button>
-
-      {open && (
-        <div className="absolute left-0 top-full z-20 mt-1 min-w-[180px] rounded-md border border-border bg-card shadow-lg dark:bg-muted">
-          {SORT_COLUMNS.map((col) => (
-            <div key={col.value}>
-              <button
-                type="button"
-                onClick={() => {
-                  onSort(col.value, 'asc');
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted dark:hover:bg-muted ${sort === col.value && dir === 'asc' ? 'font-semibold text-primary dark:text-primary' : 'text-foreground'}`}
-              >
-                <ChevronUpIcon className="size-3.5 shrink-0" />
-                {t(col.labelKey as Parameters<typeof t>[0])} -{' '}
-                {t('sort-dir-asc')}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onSort(col.value, 'desc');
-                  setOpen(false);
-                }}
-                className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted dark:hover:bg-muted ${sort === col.value && dir === 'desc' ? 'font-semibold text-primary dark:text-primary' : 'text-foreground'}`}
-              >
-                <ChevronDownIcon className="size-3.5 shrink-0" />
-                {t(col.labelKey as Parameters<typeof t>[0])} -{' '}
-                {t('sort-dir-desc')}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function FiltersBar({
   result,
   sort,
@@ -222,9 +148,14 @@ function FiltersBar({
   children,
 }: {
   result: PaginatedUserFilesResult;
-  sort?: UserFilesSort;
-  dir?: UserFilesSortDir;
-  onSort?: (col: UserFilesSort, newDir: UserFilesSortDir) => void;
+  /**
+   * Required, both views. They used to be optional and only the grid passed
+   * them, so the sort chip appeared and disappeared as you toggled the view
+   * and every chip beside it moved. See `SortChip`.
+   */
+  sort: UserFilesSort;
+  dir: UserFilesSortDir;
+  onSort: (col: UserFilesSort, newDir: UserFilesSortDir) => void;
   selectedFileTypes: FileType[];
   selectedStatuses: EmbeddingStatus[];
   selectedPolicies: PiiPolicy[];
@@ -318,56 +249,78 @@ function FiltersBar({
     : Math.min(result.page * result.pageSize, result.totalCount);
 
   return (
-    <div className="flex flex-col gap-3">
+    /*
+      Three bands, and only the middle one moves.
+
+      The toolbar, the selection bar and the pagination strip are `shrink-0`
+      siblings of one `min-h-0 flex-1` slot; whatever a view puts in that slot
+      owns the scrolling. Everything here used to sit inside a single
+      `overflow-y-auto` box together, which meant the filters you were working
+      with and the pager telling you how many rows there were both scrolled
+      away with the rows themselves — the pager was under the fold on any full
+      page, and the whole thing read as a widget embedded in the page rather
+      than as the page.
+
+      The slot does not know what a table is: the table and the grid each
+      bring their own scroller.
+    */
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       {/*
         Search and the chips are one row, because they are one question: each
         narrows the same set, and splitting them put a text field in a row of
         its own above three controls that do the same job. The view toggle sits
         at the far end — it changes how the answer is drawn, not what it is.
+
+        Two boxes rather than one wrapping row: the controls that narrow the
+        set wrap among themselves, and the view toggle stays anchored to the
+        top right. In one row it rode the *last* wrapped line, so on a narrow
+        panel it appeared halfway down the toolbar, beside whichever chip
+        happened to fall last.
       */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {search}
-        {sort !== undefined && dir !== undefined && onSort !== undefined && (
-          <SortDropdown sort={sort} dir={dir} onSort={onSort} />
-        )}
-        <FileTypeFilterDropdown
-          selected={selectedFileTypes}
-          onChange={handleFileTypeChange}
-        />
-        <EmbeddingStatusFilterDropdown
-          selected={selectedStatuses}
-          onChange={handleStatusChange}
-        />
-        <PiiPolicyFilterDropdown
-          selected={selectedPolicies}
-          onChange={handlePolicyChange}
-        />
-        {hasActiveFilters && !isFilteredEmpty && (
-          /*
-            "Clear all", not "Reset filters": beside the chips it is clear what
-            it clears, and the shorter word is the design's. The empty state
-            keeps `reset-filters`, where a bare "Clear all" would sit next to
-            a table of nothing and read as an offer to clear the files.
-          */
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            className="text-sm text-muted-foreground underline hover:text-foreground"
-          >
-            {t('clear-all-filters')}
-          </button>
-        )}
-        {viewToggle && (
-          <>
-            <div className="flex-1" />
-            {viewToggle}
-          </>
-        )}
+      <div className="flex shrink-0 items-start gap-2">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          {search}
+          <SortChip sort={sort} dir={dir} onSort={onSort} />
+          <FileTypeFilterDropdown
+            selected={selectedFileTypes}
+            onChange={handleFileTypeChange}
+          />
+          <EmbeddingStatusFilterDropdown
+            selected={selectedStatuses}
+            onChange={handleStatusChange}
+          />
+          <PiiPolicyFilterDropdown
+            selected={selectedPolicies}
+            onChange={handlePolicyChange}
+          />
+          {hasActiveFilters && !isFilteredEmpty && (
+            /*
+              "Clear all", not "Reset filters": beside the chips it is clear
+              what it clears, and the shorter word is the design's. The empty
+              state keeps `reset-filters`, where a bare "Clear all" would sit
+              next to a table of nothing and read as an offer to clear the
+              files.
+            */
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="text-sm text-muted-foreground underline hover:text-foreground"
+            >
+              {t('clear-all-filters')}
+            </button>
+          )}
+        </div>
+        {viewToggle}
       </div>
 
-      {selectionBar}
+      {selectionBar && <div className="shrink-0">{selectionBar}</div>}
 
-      {children}
+      {/*
+        The scrolling slot. It is a flex column so the view inside it can be
+        `min-h-0 flex-1` and take the height that is left, rather than the
+        height of its own rows.
+      */}
+      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
 
       {/*
         Also when the requested page is past the end, which is the one case
@@ -376,7 +329,11 @@ function FiltersBar({
         saying so would be gone with them.
       */}
       {(result.totalPages > 1 || result.page > result.totalPages) && (
-        <div className="flex items-center justify-between mt-2">
+        // A hairline, because this strip is now static while the rows above
+        // it move: without a rule it reads as the last row rather than as the
+        // page's own footer. `gap-3` on the column supplies the space that
+        // `mt-2` used to.
+        <div className="flex shrink-0 items-center justify-between border-t border-border pt-3">
           {/*
             "1-5 of 240" rather than "Page 1 of 48". The number people look for
             here is how many rows the current filter left, and which of them
@@ -433,6 +390,8 @@ export function DocumentsTableWithFilters({
   selectedPolicies,
   subfolders,
   onNavigateFolder,
+  onDragFiles,
+  onChangeRowPolicy,
   showModal,
   deleteLoading,
   toggleModal,
@@ -461,10 +420,14 @@ export function DocumentsTableWithFilters({
       typeof window !== 'undefined' ? window.location.search : '',
     );
 
-  const handleSort = useCallback(
-    (column: UserFilesSort) => {
-      const newDir: UserFilesSortDir =
-        sort === column && dir === 'asc' ? 'desc' : 'asc';
+  /**
+   * Two callers, two shapes. The sort chip names the direction it wants; a
+   * column header only names the column and means "the other way round from
+   * now". `pushSort` is the one that writes the URL, and `handleSort` is the
+   * header's toggle expressed through it.
+   */
+  const pushSort = useCallback(
+    (column: UserFilesSort, newDir: UserFilesSortDir) => {
       router.push(
         buildUrl(pathname, getParams(), {
           sort: column,
@@ -473,7 +436,14 @@ export function DocumentsTableWithFilters({
         }),
       );
     },
-    [sort, dir, router, pathname],
+    [router, pathname],
+  );
+
+  const handleSort = useCallback(
+    (column: UserFilesSort) => {
+      pushSort(column, sort === column && dir === 'asc' ? 'desc' : 'asc');
+    },
+    [pushSort, sort, dir],
   );
 
   const handlePolicyChange = useCallback(
@@ -520,6 +490,9 @@ export function DocumentsTableWithFilters({
   return (
     <FiltersBar
       result={result}
+      sort={sort}
+      dir={dir}
+      onSort={pushSort}
       selectedFileTypes={selectedFileTypes}
       selectedStatuses={selectedStatuses}
       selectedPolicies={selectedPolicies}
@@ -554,6 +527,8 @@ export function DocumentsTableWithFilters({
         isFilteredEmpty={isFilteredEmptyVal}
         onResetFilters={handleResetFilters}
         canManageOrg={canManageOrg}
+        onDragFiles={onDragFiles}
+        onChangeRowPolicy={onChangeRowPolicy}
       />
     </FiltersBar>
   );

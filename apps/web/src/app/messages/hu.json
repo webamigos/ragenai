@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "hiányzó felhasználói azonosító",
     "error-during-deleting-file": "Hiba történt a dokumentum törlése közben",
+    "error-during-moving-file": "Hiba történt a dokumentum áthelyezése közben",
     "fetching-docs-error": "Hiba történt a dokumentumok betöltése közben",
     "no-files": "Nincs fájl"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Sikertelen",
     "status-uploading": "Feltöltés folyamatban",
     "score-rag": "RAG pontszám",
+    "optimize-rag": "Optimalizálás RAG-hoz",
+    "change-pii-policy": "Adatvédelmi szabály módosítása",
     "sort-file-name": "Fájlnév",
     "sort-file-size": "Fájlméret",
     "sort-created": "Hozzáadás dátuma",
@@ -1276,7 +1279,6 @@
     "sort-label": "Rendezés",
     "sort-dir-asc": "Növekvő",
     "sort-dir-desc": "Csökkenő",
-    "reembed": "Szabályzat alkalmazása",
     "filter-clear": "{filter} szűrő törlése",
     "filter-pii-policy": "Szabály",
     "filter-pii-policy-all": "Mind"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "PII-szabály módosítása",
     "description": "Egy szabály az összes kijelölt fájlra: {count, plural, one {# fájl} other {# fájl}}.",
+    "description-single": "A(z) „{fileName}” szabályának módosítása. A már indexelt szöveg változatlan marad, amíg a fájlt újra fel nem dolgozzák.",
     "apply": "Alkalmazás ({count, plural, one {# fájl} other {# fájl}})",
     "applying": "Alkalmazás...",
     "reprocess-label": "Újrafeldolgozás most",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Érzékeny adatok",
     "badge-strict": "Minden személyes adat",
     "pii-policy-label": "Személyes adatok maszkolási szabályzata",
-    "inline-edit-tooltip": "A szabályzat mentve. Kattints az \"Szabályzat alkalmazása\" gombra a dokumentum újrafeldolgozásához az új maszkolási beállításokkal.",
     "reembed-success": "A dokumentumot újrafeldolgozzuk az új szabályzattal",
     "reembed-error": "A szabályzat alkalmazása sikertelen",
     "info-page-title": "Személyes adatok kezelési szabályzata",

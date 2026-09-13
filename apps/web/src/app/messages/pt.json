@@ -321,6 +321,7 @@
   "error-toast": {
     "no-user-id": "ID de usuário ausente",
     "error-during-deleting-file": "Erro ao excluir o documento",
+    "error-during-moving-file": "Erro ao mover o documento",
     "fetching-docs-error": "Erro ao buscar documentos",
     "no-files": "Nenhum arquivo"
   },
@@ -1251,6 +1252,8 @@
     "status-failed": "Falhou",
     "status-uploading": "Enviando",
     "score-rag": "Pontuação RAG",
+    "optimize-rag": "Otimizar para RAG",
+    "change-pii-policy": "Alterar a política de dados pessoais",
     "sort-file-name": "Nome do arquivo",
     "sort-file-size": "Tamanho do arquivo",
     "sort-created": "Data de adição",
@@ -1276,7 +1279,6 @@
     "sort-label": "Ordenar",
     "sort-dir-asc": "Crescente",
     "sort-dir-desc": "Decrescente",
-    "reembed": "Aplicar política",
     "filter-clear": "Limpar o filtro {filter}",
     "filter-pii-policy": "Política",
     "filter-pii-policy-all": "Todos"
@@ -1389,6 +1391,7 @@
   "bulk-policy-modal": {
     "title": "Alterar política de PII",
     "description": "Uma única política para todos os arquivos selecionados: {count, plural, one {# arquivo} other {# arquivos}}.",
+    "description-single": "Alteração da política de “{fileName}”. O texto já indexado permanece como está até o arquivo ser reprocessado.",
     "apply": "Aplicar ({count, plural, one {# arquivo} other {# arquivos}})",
     "applying": "A aplicar...",
     "reprocess-label": "Reprocessar agora",
@@ -2167,7 +2170,6 @@
     "badge-toxic-only": "Dados sensíveis",
     "badge-strict": "Todos os dados pessoais",
     "pii-policy-label": "Política de mascaramento de dados pessoais",
-    "inline-edit-tooltip": "Política salva. Clique em \"Aplicar política\" para reprocessar o documento com as novas configurações de mascaramento.",
     "reembed-success": "O documento será reprocessado com a nova política",
     "reembed-error": "Falha ao aplicar a política",
     "info-page-title": "Política de dados pessoais",

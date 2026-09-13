@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { truncateFileName } from '@/app/lib/utils/truncateFileName';
 import { getFileIcon } from '@/app/lib/constants/fileIcons';
 import { Text } from '@ragenai/common-ui/Text';
+import { setDraggedFileIds } from '@/features/documents/constants/file-drag';
 import { Tooltip } from '@ragenai/common-ui/Tooltip';
 import { Link } from '@/i18n/routing';
 
@@ -21,6 +22,8 @@ type Props = {
   isSelected?: boolean;
   onToggleFile?: (id: string) => void;
   onPreviewFile?: (file: UserFileTypeSafe) => void;
+  /** See `FileRowProps.onDragFiles` in `UserFilesTable`. */
+  onDragFiles?: (fileId: string) => string[];
   onMove?: (fileId: string) => void;
   onShare?: (fileId: string) => void;
   onScore?: (fileId: string) => void;
@@ -36,6 +39,7 @@ export const FileCard = ({
   isSelected,
   onToggleFile,
   onPreviewFile,
+  onDragFiles,
   onMove,
   onShare,
   onScore,
@@ -111,6 +115,14 @@ export const FileCard = ({
       className={`flex flex-col bg-muted dark:bg-paper-800 rounded-lg shadow-sm overflow-hidden group relative cursor-pointer${isSelected ? ' outline outline-2 outline-ring' : ''}`}
       data-testid={`file-card-${fileIdVal}`}
       onClick={() => onPreviewFile?.(file)}
+      // Draggable onto a folder in the rail, same gesture as a table row.
+      draggable={onDragFiles !== undefined}
+      onDragStart={(event) => {
+        if (!onDragFiles) {
+          return;
+        }
+        setDraggedFileIds(event.dataTransfer, onDragFiles(fileIdVal));
+      }}
     >
       <div className="px-3 py-2 flex items-center gap-2">
         <div className="flex items-center gap-2 min-w-0 overflow-hidden flex-1">
