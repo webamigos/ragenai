@@ -375,7 +375,7 @@ Moved to [`docs/settings-pages.md`](docs/settings-pages.md) — see the Task Rou
 - Prisma IDs: `Int` autoincrement `id` (internal) + `publicId` UUID (external/URLs). Better Auth tables keep String IDs.
 - All Prisma fields use camelCase with `@map('snake_case')` for DB columns.
 - Timestamps use `Timestamptz`; default TZ Europe/Warsaw.
-- i18n: `en`/`pl` via `next-intl`. Use `Link`/`redirect`/`usePathname`/`useRouter` from `@/i18n/routing` (NOT `next/link` or `next/navigation`).
+- i18n: `next-intl` (locales: `apps/web/src/app/config.ts`). Use `@/i18n/routing`'s `Link`/`redirect`/`usePathname`/`useRouter`, not `next/link`.
 - Tailwind v4 with `@theme` directive in `src/app/[locale]/global.css`. Brand colors: Ragen red `#cb1d3d`, Ragen blue `#252d53`.
 - Error classes: `UnauthorizedException`, `NotFoundException`, `LimitExceededException`. Temporal workflows: reference by string name, not function import.
 - Logging: Pino w/ OpenTelemetry; webpack swaps server → client logger on client builds.
