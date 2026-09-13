@@ -1423,6 +1423,7 @@
     "download": "Descargar",
     "loading": "Cargando...",
     "error-loading": "Error al cargar el archivo.",
+    "highlight-legend": "Resaltado: el párrafo del que procede este fragmento",
     "page": "Página",
     "of": "de",
     "zoom-in": "Acercar",
@@ -2344,6 +2345,7 @@
     "close-rail": "Cerrar fuentes",
     "open-rail": "Fuentes",
     "cited-none": "La respuesta no citó ninguna",
-    "show-more": "{count, plural, one {Mostrar # fuente más} other {Mostrar # fuentes más}}"
+    "show-more": "{count, plural, one {Mostrar # fuente más} other {Mostrar # fuentes más}}",
+    "open-source": "Abrir {name}"
   }
 }

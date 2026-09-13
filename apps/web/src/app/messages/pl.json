@@ -1423,6 +1423,7 @@
     "download": "Pobierz",
     "loading": "Ładowanie...",
     "error-loading": "Nie udało się załadować pliku.",
+    "highlight-legend": "Podświetlono: akapit, z którego pochodzi ten fragment",
     "page": "Strona",
     "of": "z",
     "zoom-in": "Powiększ",
@@ -2344,6 +2345,7 @@
     "close-rail": "Zamknij źródła",
     "open-rail": "Źródła",
     "cited-none": "Odpowiedź nie powołała się na żadne z nich",
-    "show-more": "{count, plural, one {Pokaż jeszcze # źródło} few {Pokaż jeszcze # źródła} many {Pokaż jeszcze # źródeł} other {Pokaż jeszcze # źródeł}}"
+    "show-more": "{count, plural, one {Pokaż jeszcze # źródło} few {Pokaż jeszcze # źródła} many {Pokaż jeszcze # źródeł} other {Pokaż jeszcze # źródeł}}",
+    "open-source": "Otwórz {name}"
   }
 }

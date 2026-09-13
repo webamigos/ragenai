@@ -40,6 +40,16 @@ type Props = {
    * document, not per bubble.
    */
   idPrefix: string;
+  /**
+   * What to do when a reader picks a source, if anything.
+   *
+   * Optional, and its absence is the read-only rendering this block has always
+   * had: a card that cannot be opened must not look like a button. A public
+   * share and a guest thread reach this component without a preview to open,
+   * and a card that clicks into nothing is worse than one that does not
+   * invite the click.
+   */
+  onActivate?: (source: RetrievalSource) => void;
   className?: string;
 };
 
@@ -56,19 +66,26 @@ const SourceCard = ({
   source,
   idPrefix,
   isCited = false,
+  onActivate,
 }: {
   source: NumberedSource;
   idPrefix: string;
   isCited?: boolean;
+  onActivate?: (source: RetrievalSource) => void;
 }) => {
   const t = useTranslations('sources');
 
-  return (
-    <li
-      id={`${idPrefix}-${source.number}`}
-      data-cited={isCited}
-      className="scroll-mt-24 rounded-lg border border-border bg-card p-2 text-xs target:border-marker"
-    >
+  /*
+    One target, not two. The card has no other interactive element in it, so
+    making the whole row the control is the exception panel rule 14 allows —
+    the failure it guards against is a row where a click lands somewhere
+    different depending on which few characters you hit.
+
+    A `<button>` rather than a link: this opens a panel over the thread, it
+    does not navigate, and there is no URL that would restore it.
+  */
+  const body = (
+    <>
       <div className="flex items-center gap-1.5">
         {/*
           Crimson, and only here: the panel rules ration it to five jobs and
@@ -142,6 +159,34 @@ const SourceCard = ({
           {source.snippet}
         </blockquote>
       ) : null}
+    </>
+  );
+
+  return (
+    <li
+      id={`${idPrefix}-${source.number}`}
+      data-cited={isCited}
+      className="scroll-mt-24 rounded-lg border border-border bg-card text-xs target:border-marker"
+    >
+      {onActivate ? (
+        <button
+          type="button"
+          onClick={() => onActivate(source)}
+          /*
+            Names the document rather than saying "open source 3". The
+            accessible name is what a reader hears in a list of them, and a
+            list of ordinals is a list of nothing.
+          */
+          aria-label={t('open-source', {
+            name: source.fileName ?? source.fileId,
+          })}
+          className="block w-full cursor-pointer rounded-lg p-2 text-left hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          {body}
+        </button>
+      ) : (
+        <div className="p-2">{body}</div>
+      )}
     </li>
   );
 };
@@ -149,7 +194,12 @@ const SourceCard = ({
 /** A source carrying the number the answer cites it by. */
 type NumberedSource = RetrievalSource & { number: number };
 
-export const SourcesBlock = ({ retrieval, idPrefix, className }: Props) => {
+export const SourcesBlock = ({
+  retrieval,
+  idPrefix,
+  onActivate,
+  className,
+}: Props) => {
   const t = useTranslations('sources');
   const { sources, chunkCount, durationMs, citedFileIds } = retrieval;
 
@@ -227,6 +277,7 @@ export const SourcesBlock = ({ retrieval, idPrefix, className }: Props) => {
                   key={source.fileId}
                   source={source}
                   idPrefix={idPrefix}
+                  onActivate={onActivate}
                   isCited
                 />
               ))}
@@ -257,6 +308,7 @@ export const SourcesBlock = ({ retrieval, idPrefix, className }: Props) => {
                     key={source.fileId}
                     source={source}
                     idPrefix={idPrefix}
+                    onActivate={onActivate}
                   />
                 ))}
               </ul>

@@ -1,6 +1,19 @@
+import { MAX_SOURCE_REGIONS, type SourceRegion } from '@ragenai/rag-core';
+
 import { type Document } from '../../types/Document';
 
-export type PageAnchor = { offset: number; page: number };
+/**
+ * One located text element: where it starts in the markdown, what page it came
+ * from, and where it sits on that page when the parser gave a usable box.
+ *
+ * Still called `PageAnchor` after it stopped being one-per-page — see
+ * `buildTextElementAnchors` in the docling client, which produces these.
+ */
+export type PageAnchor = {
+  offset: number;
+  page: number;
+  region?: SourceRegion;
+};
 
 /**
  * Gives each chunk the page it came from.
@@ -24,6 +37,10 @@ export type PageAnchor = { offset: number; page: number };
  * exercise: gap 3 exists because a number was shown under the word "page"
  * without being one, and a guessed page repeats the mistake in a form that is
  * harder to spot.
+ *
+ * **And the boxes of the elements inside it**, where the anchors carry them.
+ * `sourcePage` is the page of the last anchor at or before the chunk's start;
+ * the regions are those of the anchors *within* the chunk's span.
  */
 export function attachSourcePages(
   chunks: Document[],
@@ -58,11 +75,59 @@ export function attachSourcePages(
       return chunk;
     }
 
+    const regions = regionsWithin(offset, text.length, anchors);
+
     return {
       ...chunk,
-      metadata: { ...chunk.metadata, sourcePage: page },
+      metadata: {
+        ...chunk.metadata,
+        sourcePage: page,
+        // Omitted, never `[]`. Absence is what the overlay reads as "nothing
+        // to draw", and an empty array would be a claim that the chunk covers
+        // no part of the page.
+        ...(regions.length > 0 ? { sourceRegions: regions } : {}),
+      },
     };
   });
+}
+
+/**
+ * The regions of the anchors inside a chunk.
+ *
+ * **The end of the span is `start + length`, and that is knowingly
+ * approximate.** `locate()` finds a chunk's start by probing and verifying a
+ * prefix precisely because the splitter alters characters between the markdown
+ * and the chunk, so the chunk's length is not exactly the span it occupies in
+ * the source. The cost of being a few characters out is one extra rectangle on
+ * an adjacent paragraph, or one missing on the last — cosmetic. For
+ * `sourcePage` the same error would be a correctness failure, which is why
+ * that value keeps its derivation from the start offset alone and does not
+ * touch this.
+ */
+function regionsWithin(
+  start: number,
+  length: number,
+  anchors: readonly PageAnchor[],
+): SourceRegion[] {
+  const end = start + length;
+  const regions: SourceRegion[] = [];
+
+  for (const anchor of anchors) {
+    if (anchor.offset >= end) {
+      break;
+    }
+    if (anchor.offset < start || anchor.region === undefined) {
+      continue;
+    }
+    regions.push(anchor.region);
+    if (regions.length === MAX_SOURCE_REGIONS) {
+      // A highlight covering most of a page tells the reader nothing, so the
+      // rest are not worth the payload bytes.
+      break;
+    }
+  }
+
+  return regions;
 }
 
 /**

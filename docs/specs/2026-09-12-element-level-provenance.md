@@ -1,6 +1,6 @@
 ---
 title: Element-level provenance from Docling
-status: draft
+status: delivered
 areas: [worker, rag, knowledge-base]
 adrs: [18, 20, 33]
 ---
@@ -325,15 +325,15 @@ most of a page tells the reader nothing anyway.
 
 ### Phase A — the worker carries the boxes
 
-- [ ] **A1.** Pin the parser contract: record the real docling-serve response
+- [x] **A1.** Pin the parser contract: record the real docling-serve response
       for `regulamin-wilczy-mlyn.pdf` as a fixture and assert the shape this
       spec depends on — `prov[0].bbox` as `{l,t,r,b,coord_origin}`,
       `pages[n].size`, `self_ref`, and the absence of a page rotation field. No
       production code.
-- [ ] **A2.** Move `VectorStoreDocumentMetadata` into `@ragenai/rag-core` as the
+- [x] **A2.** Move `VectorStoreDocumentMetadata` into `@ragenai/rag-core` as the
       union of the two copies, re-exported from both former paths. Pure type
       move, no behaviour change, no import churn.
-- [ ] **A3.** `buildPageAnchors` → `buildTextElementAnchors` (inside
+- [x] **A3.** `buildPageAnchors` → `buildTextElementAnchors` (inside
       `convertWithDocling`, widening its return type): one anchor per located
       text element, each with page and normalised box. Both invariants
       documented at the loop. The regression test runs the A1 fixture through
@@ -345,28 +345,28 @@ most of a page tells the reader nothing anyway.
       make. The existing `source-pages.test.ts` feeds a hand-written anchor
       list and cannot see any of it, because the change is in the producer, not
       the consumer.
-- [ ] **A4.** Add `source_regions` to the unified type; `attachSourcePages`
+- [x] **A4.** Add `source_regions` to the unified type; `attachSourcePages`
       collects anchors inside each chunk's span onto `sourceRegions`, capped at
       32; `prepareMetadata` maps it into the payload. New ingests carry boxes;
       nothing reads them.
-- [ ] **A5.** Surface `sourceRegions` on `RetrievalSource` and the persisted
+- [x] **A5.** Surface `sourceRegions` on `RetrievalSource` and the persisted
       retrieval read path, following the optional-on-restore split #1071
       established. Nothing renders it.
 
 ### Phase B — the chat shows them
 
-- [ ] **B1.** Make the react-pdf viewer provably work: fix the `pdfjs-dist`
+- [x] **B1.** Make the react-pdf viewer provably work: fix the `pdfjs-dist`
       alias for the hoisted, `.mjs`-only package under Turbopack, and add the
       component test it has never had. If it already works, this step is the
       test alone — but that is a finding, not an assumption.
-- [ ] **B2.** Optional `highlights` and `initialPage` props on that viewer, with
+- [x] **B2.** Optional `highlights` and `initialPage` props on that viewer, with
       an absolutely-positioned overlay over `<Page>`. With no highlights it
       behaves exactly as before. Copy and `aria-hidden` land here, with all 15
       locale files, in the step that introduces the strings.
-- [ ] **B3.** Make source cards in `SourcesBlock` activatable. The component has
+- [x] **B3.** Make source cards in `SourcesBlock` activatable. The component has
       no button, link or handler today, so this is the interaction being added,
       not wired.
-- [ ] **B4.** Host the document preview in the chat route — `DocumentPreviewSlideOver`
+- [x] **B4.** Host the document preview in the chat route — `DocumentPreviewSlideOver`
       is currently mounted only in `ManageKnowledge/UserFiles/UserFilesWrapper.tsx`
       — and open it at the cited page with that source's regions highlighted.
 

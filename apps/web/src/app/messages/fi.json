@@ -1423,6 +1423,7 @@
     "download": "Lataa",
     "loading": "Ladataan...",
     "error-loading": "Tiedoston lataaminen epäonnistui.",
+    "highlight-legend": "Korostettu: kappale, josta tämä katkelma on peräisin",
     "page": "Sivu",
     "of": "/",
     "zoom-in": "Lähennä",
@@ -2344,6 +2345,7 @@
     "close-rail": "Sulje lähteet",
     "open-rail": "Lähteet",
     "cited-none": "Vastaus ei viitannut yhteenkään niistä",
-    "show-more": "Näytä {count} lisälähdettä"
+    "show-more": "Näytä {count} lisälähdettä",
+    "open-source": "Avaa {name}"
   }
 }

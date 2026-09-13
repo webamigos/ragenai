@@ -117,9 +117,12 @@ describe('page anchors', () => {
     });
   });
 
-  it('records one anchor per page, not per element', () => {
-    // The lookup only needs to know where a page begins; anchors inside it
-    // add nothing and would make the scan longer for no answer.
+  it('records one anchor per element, and the page lookup is unchanged by it', () => {
+    // This used to keep one anchor per page. Element-level provenance needs
+    // one per element, and the page a chunk gets is the same either way: the
+    // last anchor at or before an offset still lies in the same run of
+    // same-page elements. `docling-anchor-regression.test.ts` proves that end
+    // to end; this pins the denser list itself.
     respond({
       md_content: 'Pierwszy akapit. Drugi akapit. Trzeci akapit.',
       json_content: {
@@ -134,6 +137,7 @@ describe('page anchors', () => {
     return expect(convert()).resolves.toMatchObject({
       pageAnchors: [
         { offset: 0, page: 1 },
+        { offset: 17, page: 1 },
         { offset: 31, page: 2 },
       ],
     });

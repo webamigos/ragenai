@@ -1423,6 +1423,7 @@
     "download": "Scarica",
     "loading": "Caricamento in corso...",
     "error-loading": "Impossibile caricare il file.",
+    "highlight-legend": "Evidenziato: il paragrafo da cui proviene questo estratto",
     "page": "Pagina",
     "of": "di",
     "zoom-in": "Aumenta zoom",
@@ -2344,6 +2345,7 @@
     "close-rail": "Chiudi le fonti",
     "open-rail": "Fonti",
     "cited-none": "La risposta non ne ha citata nessuna",
-    "show-more": "{count, plural, one {Mostra # altra fonte} other {Mostra # altre fonti}}"
+    "show-more": "{count, plural, one {Mostra # altra fonte} other {Mostra # altre fonti}}",
+    "open-source": "Apri {name}"
   }
 }

@@ -58,6 +58,43 @@ describe('toRetrievalEvent', () => {
     ]);
   });
 
+  it('sends the regions of the chunk it quoted', () => {
+    const regions = [{ page: 7, x: 0.05, y: 0.2, w: 0.9, h: 0.06 }];
+    const event = toRetrievalEvent({
+      sources: [source({ sourceRegions: regions })],
+      chunkCount: 1,
+      durationMs: 10,
+    });
+
+    expect(event.sources[0].sourceRegions).toEqual(regions);
+  });
+
+  it('omits regions rather than sending an empty array', () => {
+    // Same rule as `pages` and `sourcePage`: `[]` would say the chunk covers
+    // no part of the page, where the truth is that the parser gave no box.
+    const event = toRetrievalEvent({
+      sources: [source({ sourceRegions: [] })],
+      chunkCount: 1,
+      durationMs: 10,
+    });
+
+    expect(event.sources[0]).not.toHaveProperty('sourceRegions');
+  });
+
+  it("copies each region rather than handing over the chain's own objects", () => {
+    // A renderer is free to mutate what it is given; the citation and
+    // analytics paths still read the chain's objects afterwards.
+    const regions = [{ page: 1, x: 0, y: 0, w: 1, h: 0.1 }];
+    const event = toRetrievalEvent({
+      sources: [source({ sourceRegions: regions })],
+      chunkCount: 1,
+      durationMs: 10,
+    });
+
+    expect(event.sources[0].sourceRegions).not.toBe(regions);
+    expect(event.sources[0].sourceRegions?.[0]).not.toBe(regions[0]);
+  });
+
   it('omits an optional field rather than sending it as undefined', () => {
     // Absence is what the receiving side reads: no score means reranking did
     // not run, no page means the parser could not say. A key present with

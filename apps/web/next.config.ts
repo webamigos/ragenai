@@ -98,11 +98,17 @@ const nextConfig = {
     config: any,
     { isServer, webpack }: { isServer: boolean; webpack: any },
   ) => {
-    // PDF.js worker alias for react-pdf
-    config.resolve.alias['pdfjs-dist'] = require('path').resolve(
-      __dirname,
-      'node_modules/pdfjs-dist/legacy/build/pdf.js',
-    );
+    // There was a `pdfjs-dist` alias here for react-pdf, pointing at
+    // `apps/web/node_modules/pdfjs-dist/legacy/build/pdf.js`. That file does
+    // not exist, for two independent reasons — `pdfjs-dist` is hoisted to the
+    // monorepo root, and pdfjs-dist@5 ships only `.mjs`, so there is no
+    // `pdf.js` in `build/` or `legacy/build/` — and it had no effect either
+    // way, because this whole function is inert: apps/web runs bare
+    // `next dev` / `next build` on Next 16, where Turbopack is the bundler and
+    // a `webpack` key is never called. Removed rather than corrected: nothing
+    // needs it. Turbopack resolves `pdfjs-dist` normally and emits the worker
+    // from `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)`
+    // as a static asset, which is what the viewer actually relies on.
 
     if (!isServer) {
       // Replace serverLogger with clientLogger on client-side

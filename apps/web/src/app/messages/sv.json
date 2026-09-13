@@ -1423,6 +1423,7 @@
     "download": "Ladda ner",
     "loading": "Laddar...",
     "error-loading": "Det gick inte att ladda filen.",
+    "highlight-legend": "Markerat: stycket som det här utdraget kommer från",
     "page": "Sida",
     "of": "av",
     "zoom-in": "Zooma in",
@@ -2344,6 +2345,7 @@
     "close-rail": "Stäng källor",
     "open-rail": "Källor",
     "cited-none": "Svaret citerade ingen av dem",
-    "show-more": "{count, plural, one {Visa # källa till} other {Visa # källor till}}"
+    "show-more": "{count, plural, one {Visa # källa till} other {Visa # källor till}}",
+    "open-source": "Öppna {name}"
   }
 }

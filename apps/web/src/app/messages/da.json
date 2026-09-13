@@ -1423,6 +1423,7 @@
     "download": "Download",
     "loading": "Indlæser...",
     "error-loading": "Kunne ikke indlæse filen.",
+    "highlight-legend": "Fremhævet: afsnittet, som dette uddrag stammer fra",
     "page": "Side",
     "of": "af",
     "zoom-in": "Zoom ind",
@@ -2344,6 +2345,7 @@
     "close-rail": "Luk kilder",
     "open-rail": "Kilder",
     "cited-none": "Svaret citerede ingen af dem",
-    "show-more": "{count, plural, one {Vis # kilde mere} other {Vis # kilder mere}}"
+    "show-more": "{count, plural, one {Vis # kilde mere} other {Vis # kilder mere}}",
+    "open-source": "Åbn {name}"
   }
 }

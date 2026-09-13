@@ -1423,6 +1423,7 @@
     "download": "Download",
     "loading": "Loading...",
     "error-loading": "Failed to load file.",
+    "highlight-legend": "Highlighted: the paragraph this passage came from",
     "page": "Page",
     "of": "of",
     "zoom-in": "Zoom in",
@@ -2344,6 +2345,7 @@
     "close-rail": "Close sources",
     "open-rail": "Sources",
     "cited-none": "The answer did not cite any of them",
-    "show-more": "{count, plural, one {Show # more source} other {Show # more sources}}"
+    "show-more": "{count, plural, one {Show # more source} other {Show # more sources}}",
+    "open-source": "Open {name}"
   }
 }

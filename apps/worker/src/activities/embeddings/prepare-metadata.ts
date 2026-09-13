@@ -1,3 +1,5 @@
+import { type SourceRegion } from '@ragenai/rag-core';
+
 import { type Document } from '../../types/Document';
 import { type VectorStoreDocumentMetadata } from '../../services/llm/types/vector-store';
 import { type FileType } from '../../types/UserFile';
@@ -54,6 +56,7 @@ export const prepareMetadata = async ({
             pii_mode?: 'dual_content';
             content_original?: string;
             sourcePage?: number;
+            sourceRegions?: SourceRegion[];
           }
         | undefined;
 
@@ -67,6 +70,12 @@ export const prepareMetadata = async ({
         // old chunk cannot be mislabelled by a rule it predates.
         ...(typeof incoming?.sourcePage === 'number'
           ? { source_page: incoming.sourcePage }
+          : {}),
+        // Same rule, one level down: the overlay draws only where this is
+        // present, so an empty array would be a claim that the chunk covers no
+        // part of the page rather than "the parser gave no box".
+        ...(incoming?.sourceRegions && incoming.sourceRegions.length > 0
+          ? { source_regions: incoming.sourceRegions }
           : {}),
         created_at: new Date().toISOString().split('T')[0],
         id: `${fileRecord.id}-${index}`,

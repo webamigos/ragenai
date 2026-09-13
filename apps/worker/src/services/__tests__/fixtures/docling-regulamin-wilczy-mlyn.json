@@ -1,0 +1,545 @@
+{
+  "document": {
+    "filename": "regulamin-wilczy-mlyn.pdf",
+    "md_content": "ZAKLADY HYDRAULICZNE WILCZY MLYN sp. z o.o. Regulamin zwrotu kosztow sprzetu biurowego Wersja 4.2, kod wewnetrzny procedury: WM-ZK-19\n\n1. POSTANOWIENIA OGOLNE\n\nNiniejszy regulamin okresla zasady zwrotu kosztow zakupu sprzetu biurowego poniesionych samodzielnie przez pracownikow spolki.\n\n2. LIMITY KWOTOWE\n\n- 2.1. Limit zwrotu kosztow zakupu monitora zewnetrznego wynosi 2 847 zl brutto na jednego pracownika w cyklu trzyletnim.\n- 2.2. Limit zwrotu za fotel biurowy wynosi 1 630 zl brutto.\n- 2.3. Limit zwrotu za klawiature i mysz laczne wynosi 412 zl brutto.\n3. TRYB ROZPATRYWANIA WNIOSKOW\n- 3.1. Wniosek rozpatrywany jest w terminie 11 dni roboczych od daty jego zlozenia w systemie kadrowym.\n- 3.2. Wnioski zatwierdza Bogumila Trzaskowska-Nierada, pelniaca funkcje Kierownika Dzialu Zaopatrzenia.\n- 3.3. Od decyzji odmownej przysluguje odwolanie w terminie 6 dni roboczych.\n\n4. WYLACZENIA\n\n- 4.1. Z procedury wylaczeni sa pracownicy oddelegowani do projektu o nazwie kodowej \"Bazyliszek\", ktorzy rozliczaja sprzet wedlug odrebnych zasad okreslonych w zalaczniku nr 7.\n- 4.2. Regulamin nie obejmuje sprzetu o wartosci jednostkowej ponizej 90 zl.",
+    "json_content": {
+      "schema_name": "DoclingDocument",
+      "version": "1.10.0",
+      "name": "regulamin-wilczy-mlyn",
+      "origin": {
+        "mimetype": "application/pdf",
+        "binary_hash": 15088055314921083000,
+        "filename": "regulamin-wilczy-mlyn.pdf",
+        "uri": null
+      },
+      "furniture": {
+        "self_ref": "#/furniture",
+        "parent": null,
+        "children": [],
+        "content_layer": "furniture",
+        "meta": null,
+        "name": "_root_",
+        "label": "unspecified"
+      },
+      "body": {
+        "self_ref": "#/body",
+        "parent": null,
+        "children": [
+          {
+            "$ref": "#/texts/0"
+          },
+          {
+            "$ref": "#/groups/0"
+          },
+          {
+            "$ref": "#/texts/2"
+          },
+          {
+            "$ref": "#/texts/3"
+          },
+          {
+            "$ref": "#/groups/1"
+          },
+          {
+            "$ref": "#/texts/11"
+          },
+          {
+            "$ref": "#/groups/2"
+          }
+        ],
+        "content_layer": "body",
+        "meta": null,
+        "name": "_root_",
+        "label": "unspecified"
+      },
+      "groups": [
+        {
+          "self_ref": "#/groups/0",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/1"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "name": "list",
+          "label": "list"
+        },
+        {
+          "self_ref": "#/groups/1",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/4"
+            },
+            {
+              "$ref": "#/texts/5"
+            },
+            {
+              "$ref": "#/texts/6"
+            },
+            {
+              "$ref": "#/texts/7"
+            },
+            {
+              "$ref": "#/texts/8"
+            },
+            {
+              "$ref": "#/texts/9"
+            },
+            {
+              "$ref": "#/texts/10"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "name": "list",
+          "label": "list"
+        },
+        {
+          "self_ref": "#/groups/2",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [
+            {
+              "$ref": "#/texts/12"
+            },
+            {
+              "$ref": "#/texts/13"
+            }
+          ],
+          "content_layer": "body",
+          "meta": null,
+          "name": "list",
+          "label": "list"
+        }
+      ],
+      "texts": [
+        {
+          "self_ref": "#/texts/0",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 772.38,
+                "r": 592.6947999999998,
+                "b": 737.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 133]
+            }
+          ],
+          "orig": "ZAKLADY HYDRAULICZNE WILCZY MLYN sp. z o.o. Regulamin zwrotu kosztow sprzetu biurowego Wersja 4.2, kod wewnetrzny procedury: WM-ZK-19",
+          "text": "ZAKLADY HYDRAULICZNE WILCZY MLYN sp. z o.o. Regulamin zwrotu kosztow sprzetu biurowego Wersja 4.2, kod wewnetrzny procedury: WM-ZK-19",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/1",
+          "parent": {
+            "$ref": "#/groups/0"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 724.38,
+                "r": 592.6947999999998,
+                "b": 713.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 23]
+            }
+          ],
+          "orig": "1. POSTANOWIENIA OGOLNE",
+          "text": "POSTANOWIENIA OGOLNE",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "1."
+        },
+        {
+          "self_ref": "#/texts/2",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 700.38,
+                "r": 592.6947999999998,
+                "b": 677.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 126]
+            }
+          ],
+          "orig": "Niniejszy regulamin okresla zasady zwrotu kosztow zakupu sprzetu biurowego poniesionych samodzielnie przez pracownikow spolki.",
+          "text": "Niniejszy regulamin okresla zasady zwrotu kosztow zakupu sprzetu biurowego poniesionych samodzielnie przez pracownikow spolki.",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/3",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 664.38,
+                "r": 592.6947999999998,
+                "b": 653.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 17]
+            }
+          ],
+          "orig": "2. LIMITY KWOTOWE",
+          "text": "2. LIMITY KWOTOWE",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/4",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 640.38,
+                "r": 592.6947999999998,
+                "b": 617.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 119]
+            }
+          ],
+          "orig": "2.1. Limit zwrotu kosztow zakupu monitora zewnetrznego wynosi 2 847 zl brutto na jednego pracownika w cyklu trzyletnim.",
+          "text": "Limit zwrotu kosztow zakupu monitora zewnetrznego wynosi 2 847 zl brutto na jednego pracownika w cyklu trzyletnim.",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "2.1."
+        },
+        {
+          "self_ref": "#/texts/5",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 604.38,
+                "r": 592.6947999999998,
+                "b": 593.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 58]
+            }
+          ],
+          "orig": "2.2. Limit zwrotu za fotel biurowy wynosi 1 630 zl brutto.",
+          "text": "Limit zwrotu za fotel biurowy wynosi 1 630 zl brutto.",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "2.2."
+        },
+        {
+          "self_ref": "#/texts/6",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 580.38,
+                "r": 592.6947999999998,
+                "b": 569.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 67]
+            }
+          ],
+          "orig": "2.3. Limit zwrotu za klawiature i mysz laczne wynosi 412 zl brutto.",
+          "text": "Limit zwrotu za klawiature i mysz laczne wynosi 412 zl brutto.",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "2.3."
+        },
+        {
+          "self_ref": "#/texts/7",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 556.38,
+                "r": 592.6947999999998,
+                "b": 545.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 30]
+            }
+          ],
+          "orig": "3. TRYB ROZPATRYWANIA WNIOSKOW",
+          "text": "TRYB ROZPATRYWANIA WNIOSKOW",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "3."
+        },
+        {
+          "self_ref": "#/texts/8",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 532.38,
+                "r": 592.6947999999998,
+                "b": 509.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 101]
+            }
+          ],
+          "orig": "3.1. Wniosek rozpatrywany jest w terminie 11 dni roboczych od daty jego zlozenia w systemie kadrowym.",
+          "text": "Wniosek rozpatrywany jest w terminie 11 dni roboczych od daty jego zlozenia w systemie kadrowym.",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "3.1."
+        },
+        {
+          "self_ref": "#/texts/9",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 496.38,
+                "r": 592.6947999999998,
+                "b": 473.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 102]
+            }
+          ],
+          "orig": "3.2. Wnioski zatwierdza Bogumila Trzaskowska-Nierada, pelniaca funkcje Kierownika Dzialu Zaopatrzenia.",
+          "text": "Wnioski zatwierdza Bogumila Trzaskowska-Nierada, pelniaca funkcje Kierownika Dzialu Zaopatrzenia.",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "3.2."
+        },
+        {
+          "self_ref": "#/texts/10",
+          "parent": {
+            "$ref": "#/groups/1"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 460.38,
+                "r": 592.6947999999998,
+                "b": 449.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 74]
+            }
+          ],
+          "orig": "3.3. Od decyzji odmownej przysluguje odwolanie w terminie 6 dni roboczych.",
+          "text": "Od decyzji odmownej przysluguje odwolanie w terminie 6 dni roboczych.",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "3.3."
+        },
+        {
+          "self_ref": "#/texts/11",
+          "parent": {
+            "$ref": "#/body"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "text",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 436.38,
+                "r": 592.6947999999998,
+                "b": 425.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 13]
+            }
+          ],
+          "orig": "4. WYLACZENIA",
+          "text": "4. WYLACZENIA",
+          "formatting": null,
+          "hyperlink": null
+        },
+        {
+          "self_ref": "#/texts/12",
+          "parent": {
+            "$ref": "#/groups/2"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 412.38,
+                "r": 592.6947999999998,
+                "b": 377.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 175]
+            }
+          ],
+          "orig": "4.1. Z procedury wylaczeni sa pracownicy oddelegowani do projektu o nazwie kodowej \"Bazyliszek\", ktorzy rozliczaja sprzet wedlug odrebnych zasad okreslonych w zalaczniku nr 7.",
+          "text": "Z procedury wylaczeni sa pracownicy oddelegowani do projektu o nazwie kodowej \"Bazyliszek\", ktorzy rozliczaja sprzet wedlug odrebnych zasad okreslonych w zalaczniku nr 7.",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "4.1."
+        },
+        {
+          "self_ref": "#/texts/13",
+          "parent": {
+            "$ref": "#/groups/2"
+          },
+          "children": [],
+          "content_layer": "body",
+          "meta": null,
+          "label": "list_item",
+          "prov": [
+            {
+              "page_no": 1,
+              "bbox": {
+                "l": 16.6,
+                "t": 364.38,
+                "r": 592.6947999999998,
+                "b": 353.01,
+                "coord_origin": "BOTTOMLEFT"
+              },
+              "charspan": [0, 74]
+            }
+          ],
+          "orig": "4.2. Regulamin nie obejmuje sprzetu o wartosci jednostkowej ponizej 90 zl.",
+          "text": "Regulamin nie obejmuje sprzetu o wartosci jednostkowej ponizej 90 zl.",
+          "formatting": null,
+          "hyperlink": null,
+          "enumerated": true,
+          "marker": "4.2."
+        }
+      ],
+      "pictures": [],
+      "tables": [],
+      "key_value_items": [],
+      "form_items": [],
+      "pages": {
+        "1": {
+          "size": {
+            "width": 612,
+            "height": 792
+          },
+          "image": null,
+          "page_no": 1
+        }
+      }
+    },
+    "html_content": null,
+    "text_content": null,
+    "doctags_content": null,
+    "doclang_content": null
+  },
+  "status": "success",
+  "errors": []
+}

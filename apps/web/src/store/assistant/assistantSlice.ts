@@ -1,4 +1,5 @@
 import type { ApiSseRetrievedSource } from '@/features/threads/contracts/events.types';
+import type { SourceRegion } from '@ragenai/rag-core';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import {
   type MessageDto,
@@ -86,6 +87,12 @@ export type RetrievalSource = {
   relevanceScore?: number;
   sourcePage?: number;
   pages?: number[];
+  /**
+   * Where on its page the quoted passage sits, for the highlight overlay.
+   * Absent on a restored turn: regions are not persisted, and absent on any
+   * document the parser gave no box for.
+   */
+  sourceRegions?: SourceRegion[];
   /** The passage the model read, quoted on the source card. */
   snippet?: string;
 };

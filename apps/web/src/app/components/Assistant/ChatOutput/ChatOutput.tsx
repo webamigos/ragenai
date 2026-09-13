@@ -27,8 +27,12 @@ import { ToolConfirmationCard } from './ToolConfirmationCard';
 import { ActiveToolCalls } from '../ActiveToolCalls';
 import { MarkdownWithMermaid } from './MarkdownWithMermaid';
 import { SourcesBlock } from './SourcesBlock';
+import { CitedSourcePreview } from './CitedSourcePreview';
 import { useAppSelector } from '@/store/hooks';
-import type { MessageRetrieval } from '@/store/assistant/assistantSlice';
+import type {
+  MessageRetrieval,
+  RetrievalSource,
+} from '@/store/assistant/assistantSlice';
 import { markCitationsInHtml } from '@/features/documents/utils/citation-chips';
 import './chat-response.css';
 
@@ -265,12 +269,38 @@ const MessageBubbleContent = ({
  * Neither one means the answer's `[n]` stay plain text — which is the honest
  * result, since there would be nothing for a chip to link to.
  */
-const AssistantAnswer = ({ message }: { message: MessageDto }) => {
+const AssistantAnswer = ({
+  message,
+  isPublicAccess,
+}: {
+  message: MessageDto;
+  /**
+   * A read-only view: a public share, a guest thread, or a shared thread
+   * opened read-only.
+   *
+   * The source cards stay, because what the answer was grounded in is worth
+   * showing to anyone who can read the answer. What goes is the *control*:
+   * `/api/files/{id}` needs a session and the file's own access check, so on a
+   * public route the panel would open onto "Failed to load file." A card that
+   * clicks into nothing is worse than one that does not invite the click.
+   */
+  isPublicAccess: boolean;
+}) => {
   const liveRetrieval = useAppSelector(
     (state) => state.assistant.retrievalByMessage[message.id],
   );
   const retrieval = liveRetrieval ?? message.retrieval;
   const anchorPrefix = anchorPrefixFor(message.id);
+  /*
+    Which source is open, per answer. Per answer rather than per thread because
+    a thread renders many of these and the panel belongs to the one that was
+    clicked — hoisting it would mean two answers racing for one slot.
+
+    The whole source, not its id: it carries the page and the regions the
+    preview places the view with, and looking them up again from an id would
+    be a second copy of a fact that is already here.
+  */
+  const [openSource, setOpenSource] = useState<RetrievalSource | null>(null);
 
   return (
     <>
@@ -282,8 +312,16 @@ const AssistantAnswer = ({ message }: { message: MessageDto }) => {
         anchorPrefix={anchorPrefix}
       />
       {retrieval ? (
-        <SourcesBlock retrieval={retrieval} idPrefix={anchorPrefix} />
+        <SourcesBlock
+          retrieval={retrieval}
+          idPrefix={anchorPrefix}
+          onActivate={isPublicAccess ? undefined : setOpenSource}
+        />
       ) : null}
+      <CitedSourcePreview
+        source={openSource}
+        onClose={() => setOpenSource(null)}
+      />
     </>
   );
 };
@@ -503,7 +541,10 @@ export const ChatOutput = ({
                   }`}
                 >
                   {message.role === 'ASSISTANT' ? (
-                    <AssistantAnswer message={message} />
+                    <AssistantAnswer
+                      message={message}
+                      isPublicAccess={isPublicAccess}
+                    />
                   ) : (
                     <MessageBubbleContent
                       content={message.content}

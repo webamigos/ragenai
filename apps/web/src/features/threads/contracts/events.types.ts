@@ -4,6 +4,7 @@ import {
   type MessageDto,
 } from '@/features/messages/contracts/message.types';
 import type { ChainErrorCode } from '@/libs/chains/types/errors';
+import type { SourceRegion } from '@ragenai/rag-core';
 
 export type SseInitEvent = {
   type: 'init';
@@ -88,6 +89,20 @@ export type ApiSseRetrievedSource = {
    * `sourcePage`; the best chunk is often not the lowest-numbered one.
    */
   pages?: number[];
+  /**
+   * Where on its page the quoted passage sits, as top-left-origin fractions of
+   * the page box, 0–1.
+   *
+   * From the same chunk as `relevanceScore`, `sourcePage` and `snippet`, so a
+   * highlight points at what the card quotes. Normalised by the worker at
+   * ingest, so a viewer needs neither the page size nor the parser's
+   * coordinate origin — `left: {x * 100}%` over the rendered page box is
+   * correct at any zoom.
+   *
+   * Absent, never empty, whenever the parser gave no box. A re-index is what
+   * gives an old document regions.
+   */
+  sourceRegions?: SourceRegion[];
   /**
    * The passage this file contributed — what the model actually read, so the
    * source card can quote it.

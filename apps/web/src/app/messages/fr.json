@@ -1423,6 +1423,7 @@
     "download": "Télécharger",
     "loading": "Chargement...",
     "error-loading": "Échec du chargement du fichier.",
+    "highlight-legend": "Surligné : le paragraphe dont provient cet extrait",
     "page": "Page",
     "of": "sur",
     "zoom-in": "Zoomer",
@@ -2344,6 +2345,7 @@
     "close-rail": "Fermer les sources",
     "open-rail": "Sources",
     "cited-none": "La réponse n'en a cité aucune",
-    "show-more": "{count, plural, one {Afficher # source de plus} other {Afficher # sources de plus}}"
+    "show-more": "{count, plural, one {Afficher # source de plus} other {Afficher # sources de plus}}",
+    "open-source": "Ouvrir {name}"
   }
 }

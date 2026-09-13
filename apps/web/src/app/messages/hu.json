@@ -1423,6 +1423,7 @@
     "download": "Letöltés",
     "loading": "Betöltés...",
     "error-loading": "A fájl betöltése sikertelen.",
+    "highlight-legend": "Kiemelve: a bekezdés, amelyből ez a részlet származik",
     "page": "Oldal",
     "of": "/",
     "zoom-in": "Nagyítás",
@@ -2344,6 +2345,7 @@
     "close-rail": "Források bezárása",
     "open-rail": "Források",
     "cited-none": "A válasz egyikre sem hivatkozott",
-    "show-more": "További {count} forrás megjelenítése"
+    "show-more": "További {count} forrás megjelenítése",
+    "open-source": "{name} megnyitása"
   }
 }

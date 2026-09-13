@@ -55,11 +55,13 @@ const EXCLUDED_DIRS = [join('apps', 'web', 'src', 'app', 'emails') + sep];
  * new literals quietly, which is how an exception list stops meaning anything.
  * A stale entry fails the suite too — see the last test.
  *
- * The five scrims are one smell rather than five: `bg-black/NN` declared
- * separately in five places is an overlay component waiting to be written. A
- * scrim genuinely cannot be a token — it dims whatever sits behind it, so
+ * The scrims were one smell rather than several: `bg-black/NN` declared
+ * separately in file after file is an overlay component waiting to be written.
+ * A scrim genuinely cannot be a token — it dims whatever sits behind it, so
  * `foreground/50` would turn it white in dark mode — but it should be declared
- * once.
+ * once. `components/ui/scrim.tsx` is now that component; the slide-over and the
+ * chat's cited-source preview use it, and the modal and lightbox entries below
+ * are the ones still to move.
  */
 const ALLOWED: Array<{ file: string; classes: string[]; because: string }> = [
   {
@@ -106,12 +108,10 @@ const ALLOWED: Array<{ file: string; classes: string[]; because: string }> = [
     because: 'a modal scrim',
   },
   {
-    file: join(
-      'apps/web/src/app/components/ManageKnowledge/DocumentPreview',
-      'DocumentPreviewSlideOver.tsx',
-    ),
-    classes: ['bg-black/40'],
-    because: 'a slide-over scrim',
+    file: join('apps/web/src/components/ui', 'scrim.tsx'),
+    classes: ['bg-black/30', 'bg-black/40', 'bg-black/50'],
+    because:
+      "the overlay component this list has been asking for — the slide-over and the chat's cited-source preview both use it, and the modal and lightbox scrims below are worth moving here too",
   },
   {
     file: join('apps/web/src/components/ui', 'alert-dialog.tsx'),

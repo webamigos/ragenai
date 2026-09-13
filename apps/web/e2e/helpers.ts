@@ -161,6 +161,35 @@ export interface BuildMockSSEOptions {
   userMessageId?: string;
   assistantMessageId?: string;
   content: string;
+  /**
+   * What retrieval found, sent before the first token the way the real stream
+   * sends it.
+   *
+   * Omitted by default, because a turn that never searched the knowledge base
+   * emits no such event at all and most of these tests are about the answer
+   * rather than about its sources. Shape:
+   * `src/features/threads/contracts/events.types.ts`.
+   */
+  retrieval?: {
+    sources: Array<{
+      fileId: string;
+      fileName: string | null;
+      chunkCount: number;
+      sourcePage?: number;
+      snippet?: string;
+      sourceRegions?: Array<{
+        page: number;
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+      }>;
+    }>;
+    chunkCount: number;
+    durationMs: number;
+  };
+  /** File ids the answer cited, sent after generation the way the real stream does. */
+  citedFileIds?: string[];
 }
 
 /**
@@ -174,16 +203,31 @@ export function buildMockSSE(options: BuildMockSSEOptions): string {
     userMessageId = 'mock-user-msg-001',
     assistantMessageId = 'mock-assistant-msg-001',
     content,
+    retrieval,
+    citedFileIds,
   } = options;
 
   const events = [
     `event: user_message_created\ndata: ${JSON.stringify({ id: userMessageId })}\n\n`,
+    // Before the first delta, as the real stream does: retrieval finishes
+    // before the model is called, so the sources row can render while the
+    // answer is still streaming.
+    ...(retrieval
+      ? [`event: retrieval\ndata: ${JSON.stringify(retrieval)}\n\n`]
+      : []),
     ...content
       .split(' ')
       .map(
         (word, i) =>
           `event: delta\ndata: ${JSON.stringify({ content: (i > 0 ? ' ' : '') + word })}\n\n`,
       ),
+    // After generation, because which sources were cited is decided from the
+    // answer text.
+    ...(citedFileIds
+      ? [
+          `event: citations\ndata: ${JSON.stringify({ fileIds: citedFileIds })}\n\n`,
+        ]
+      : []),
     `event: final_response\ndata: ${JSON.stringify({ id: assistantMessageId, role: 'ASSISTANT', runId: 'mock-run-001' })}\n\n`,
     `event: close\ndata: {}\n\n`,
   ];

@@ -1423,6 +1423,7 @@
     "download": "Herunterladen",
     "loading": "Wird geladen...",
     "error-loading": "Fehler beim Laden der Datei.",
+    "highlight-legend": "Hervorgehoben: der Absatz, aus dem dieser Auszug stammt",
     "page": "Seite",
     "of": "von",
     "zoom-in": "Vergrößern",
@@ -2344,6 +2345,7 @@
     "close-rail": "Quellen schließen",
     "open-rail": "Quellen",
     "cited-none": "Die Antwort hat keine davon zitiert",
-    "show-more": "{count, plural, one {# weitere Quelle anzeigen} other {# weitere Quellen anzeigen}}"
+    "show-more": "{count, plural, one {# weitere Quelle anzeigen} other {# weitere Quellen anzeigen}}",
+    "open-source": "{name} öffnen"
   }
 }

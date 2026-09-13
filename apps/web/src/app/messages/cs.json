@@ -1423,6 +1423,7 @@
     "download": "Stáhnout",
     "loading": "Načítání...",
     "error-loading": "Soubor se nepodařilo načíst.",
+    "highlight-legend": "Zvýrazněno: odstavec, ze kterého tento úryvek pochází",
     "page": "Stránka",
     "of": "z",
     "zoom-in": "Přiblížit",
@@ -2344,6 +2345,7 @@
     "close-rail": "Zavřít zdroje",
     "open-rail": "Zdroje",
     "cited-none": "Odpověď z nich necitovala žádný",
-    "show-more": "{count, plural, one {Zobrazit # další zdroj} few {Zobrazit # další zdroje} other {Zobrazit # dalších zdrojů}}"
+    "show-more": "{count, plural, one {Zobrazit # další zdroj} few {Zobrazit # další zdroje} other {Zobrazit # dalších zdrojů}}",
+    "open-source": "Otevřít {name}"
   }
 }

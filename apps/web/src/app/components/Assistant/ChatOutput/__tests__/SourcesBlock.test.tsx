@@ -1,16 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 
 import { SourcesBlock } from '../SourcesBlock';
 import messages from '@/app/messages/en.json';
-import type { MessageRetrieval } from '@/store/assistant/assistantSlice';
+import type {
+  MessageRetrieval,
+  RetrievalSource,
+} from '@/store/assistant/assistantSlice';
 
-const show = (retrieval: Partial<MessageRetrieval> = {}) =>
+const show = (
+  retrieval: Partial<MessageRetrieval> = {},
+  onActivate?: (source: RetrievalSource) => void,
+) =>
   render(
     <NextIntlClientProvider locale="en" messages={messages}>
       <SourcesBlock
         idPrefix="src-m1"
+        onActivate={onActivate}
         retrieval={{
           sources: [{ fileId: 'a', fileName: 'umowa.pdf', chunkCount: 1 }],
           chunkCount: 3,
@@ -373,5 +381,116 @@ describe('SourcesBlock', () => {
     // this component sees it, and if one arrives the render must not claim
     // "page 0".
     expect(row('umowa.pdf')).not.toHaveTextContent('page 0');
+  });
+});
+
+/**
+ * Picking a source.
+ *
+ * Before this the block had no button, no link and no handler — the cards were
+ * text. `onActivate` is optional so the read-only rendering survives: a public
+ * share and a guest thread have no preview to open, and a card that clicks into
+ * nothing is worse than one that does not invite the click.
+ */
+describe('SourcesBlock — activating a source', () => {
+  const sources = [
+    { fileId: 'a', fileName: 'umowa.pdf', chunkCount: 1, sourcePage: 7 },
+    { fileId: 'b', fileName: 'regulamin.pdf', chunkCount: 2 },
+  ];
+
+  it('renders no control at all when it has nowhere to send the reader', () => {
+    show({ sources, citedFileIds: ['a'] });
+
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+  });
+
+  it('makes each card one control, named after its document', () => {
+    show({ sources, citedFileIds: ['a', 'b'] }, vi.fn());
+
+    // Named by document, not "source 2": a list of ordinals is a list of
+    // nothing to anyone reading it aloud.
+    expect(
+      screen.getByRole('button', { name: 'Open umowa.pdf' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Open regulamin.pdf' }),
+    ).toBeInTheDocument();
+    // One target per card — the failure panel rule 14 guards against is a row
+    // where the destination depends on which characters you hit.
+    expect(within(row('umowa.pdf')).getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('hands back the source that was picked, not its index', () => {
+    const onActivate = vi.fn();
+    show({ sources, citedFileIds: ['a', 'b'] }, onActivate);
+
+    screen.getByRole('button', { name: 'Open regulamin.pdf' }).click();
+
+    expect(onActivate).toHaveBeenCalledTimes(1);
+    expect(onActivate).toHaveBeenCalledWith(
+      expect.objectContaining({ fileId: 'b', fileName: 'regulamin.pdf' }),
+    );
+  });
+
+  it('carries the page and the regions the preview needs', async () => {
+    // The handler gets the whole source, so whatever opens it can place the
+    // view without a second lookup.
+    const onActivate = vi.fn();
+    const regions = [{ page: 7, x: 0.05, y: 0.2, w: 0.9, h: 0.06 }];
+    show(
+      {
+        sources: [{ ...sources[0], sourceRegions: regions }],
+        citedFileIds: ['a'],
+      },
+      onActivate,
+    );
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Open umowa.pdf' }),
+    );
+
+    expect(onActivate).toHaveBeenCalledWith(
+      expect.objectContaining({ sourcePage: 7, sourceRegions: regions }),
+    );
+  });
+
+  it('activates a collapsed source too', async () => {
+    const onActivate = vi.fn();
+    show({ sources, citedFileIds: ['a'] }, onActivate);
+
+    // Uncited sources live behind the disclosure but are in the document, the
+    // same reason their anchors are: a `[n]` chip is built for every retrieved
+    // source, not only the cited ones.
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Open regulamin.pdf' }),
+    );
+
+    expect(onActivate).toHaveBeenCalledWith(
+      expect.objectContaining({ fileId: 'b' }),
+    );
+  });
+
+  it('keeps the row anchor outside the control', async () => {
+    // The `[n]` chips scroll to the `<li>` id. Moving it onto the button would
+    // change what a fragment navigation focuses and what `:target` styles.
+    show({ sources, citedFileIds: ['a'] }, vi.fn());
+
+    expect(row('umowa.pdf')).toHaveAttribute('id', 'src-m1-1');
+  });
+
+  it('still names a file whose name was never stored', async () => {
+    const onActivate = vi.fn();
+    show(
+      { sources: [{ fileId: 'orphan-id', fileName: null, chunkCount: 1 }] },
+      onActivate,
+    );
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Open orphan-id' }),
+    );
+
+    expect(onActivate).toHaveBeenCalledWith(
+      expect.objectContaining({ fileId: 'orphan-id' }),
+    );
   });
 });

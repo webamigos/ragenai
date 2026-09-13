@@ -1,4 +1,7 @@
 import { readFile } from 'fs/promises';
+
+import { type SourceRegion } from '@ragenai/rag-core';
+
 import { DOCLING_URL } from '../consts';
 import { logger } from './logger';
 
@@ -15,7 +18,30 @@ type DoclingConvertResponse = {
   errors: string[];
 };
 
-/** Where a page starts in the markdown. */
+/**
+ * Where one text element starts in the markdown, and where it sits on the page.
+ *
+ * One per *located* element, not one per page. The page lookup that reads
+ * these is unaffected by the density — see `buildTextElementAnchors` for why
+ * that is a property of the walk and not a coincidence.
+ */
+export type TextElementAnchor = {
+  /** Character offset into the markdown. */
+  offset: number;
+  /** 1-based page the text at that offset came from. */
+  page: number;
+  /**
+   * The element's box. Absent — never zeroed — when the parser gave no usable
+   * one: a missing or zero `pages[n].size`, a non-finite coordinate, or a box
+   * that normalises to nothing. The anchor survives without it.
+   */
+  region?: SourceRegion;
+};
+
+/**
+ * The anchor shape `attachSourcePages` needs, which is a subset of the above.
+ * Kept as a name because the splitter only ever asked for offset and page.
+ */
 export type PageAnchor = {
   /** Character offset into the markdown. */
   offset: number;
@@ -35,42 +61,173 @@ export type DoclingConversion = {
    */
   pageCount: number | null;
   /**
-   * Where each page begins in the markdown, ascending by offset.
+   * Where each located text element begins in the markdown, ascending by
+   * offset, with its box where the parser gave a usable one.
    *
-   * Docling reports a page per *element*, and the markdown is one flat string,
-   * so this is the bridge: a chunk starting at offset X came from the page of
-   * the last anchor at or before X.
+   * Docling reports a page and a box per *element*, and the markdown is one
+   * flat string, so this is the bridge: a chunk starting at offset X came from
+   * the page of the last anchor at or before X, and covers the regions of the
+   * anchors inside it.
    *
-   * Sparse on purpose. Only text elements are anchored — tables and pictures
-   * live elsewhere in the document and render differently in markdown — and an
-   * element whose text cannot be located verbatim is skipped rather than
-   * guessed at. Gaps cost nothing: the lookup walks backwards to the last
-   * known page, which is the right answer for anything between two anchors.
+   * Sparse on purpose. Only text elements are anchored — see the invariants on
+   * `buildTextElementAnchors` for why widening that is not a small change —
+   * and an element whose text cannot be located verbatim is skipped rather
+   * than guessed at. Gaps cost nothing for the page lookup: it walks backwards
+   * to the last known page, which is the right answer for anything between two
+   * anchors.
+   *
+   * Still named `pageAnchors` after it stopped being one-per-page. The name is
+   * the key a completed loader activity already wrote into a running
+   * workflow's history, and renaming it would strand any ingest that is
+   * mid-flight across a deploy for no gain the caller can see.
    */
-  pageAnchors: PageAnchor[];
+  pageAnchors: TextElementAnchor[];
+};
+
+/** Docling's box: named sides in absolute points, plus the origin they mean. */
+type DoclingBbox = {
+  l: number;
+  t: number;
+  r: number;
+  b: number;
+  coord_origin?: string;
 };
 
 /**
- * Locates each text element in the markdown to learn where its page starts.
+ * How many decimals a normalised coordinate keeps.
+ *
+ * Four is ~0.06pt on a 612pt page — far finer than a highlight can show — and
+ * it is what keeps a region to roughly forty bytes instead of a hundred and
+ * twenty of float tail.
+ */
+const REGION_PRECISION = 4;
+
+function round(value: number): number {
+  const factor = 10 ** REGION_PRECISION;
+  return Math.round(value * factor) / factor;
+}
+
+/**
+ * Turns one Docling box into a top-left-origin fraction of its page.
+ *
+ * Returns undefined for anything unusable rather than a zeroed box: absence is
+ * what the whole feature reads as "no highlight here", and a `{0,0,0,0}`
+ * rectangle would be a claim about the top-left corner.
+ */
+function toRegion(
+  page: number,
+  bbox: unknown,
+  pageSize: { width: number; height: number } | null,
+): SourceRegion | undefined {
+  if (!pageSize || !(pageSize.width > 0) || !(pageSize.height > 0)) {
+    return undefined;
+  }
+  const box = bbox as DoclingBbox | undefined;
+  if (!box) {
+    return undefined;
+  }
+  const { l, t, r, b } = box;
+  if (![l, t, r, b].every((n) => typeof n === 'number' && Number.isFinite(n))) {
+    return undefined;
+  }
+
+  const { width, height } = pageSize;
+  // The flag is read, never assumed. Under BOTTOMLEFT, `t` is the *higher*
+  // edge and therefore the smaller distance from the top; assuming the wrong
+  // origin flips every rectangle to the other end of the page.
+  const topLeft = box.coord_origin === 'TOPLEFT';
+  const top = topLeft ? t : height - t;
+  const rawHeight = topLeft ? b - t : t - b;
+  const rawWidth = r - l;
+  if (!(rawWidth > 0) || !(rawHeight > 0)) {
+    return undefined;
+  }
+
+  // Clamped because the field's contract says 0–1 and an OCR box can overrun
+  // the page by a fraction of a point. A box that overruns by more than that
+  // has already been rejected above by its sign.
+  const x = Math.min(Math.max(l / width, 0), 1);
+  const y = Math.min(Math.max(top / height, 0), 1);
+  return {
+    page,
+    x: round(x),
+    y: round(y),
+    w: round(Math.min(rawWidth / width, 1 - x)),
+    h: round(Math.min(rawHeight / height, 1 - y)),
+  };
+}
+
+/** `pages` is keyed by page number as a string. */
+function readPageSizes(
+  parsed: unknown,
+): Map<number, { width: number; height: number }> {
+  const sizes = new Map<number, { width: number; height: number }>();
+  const pages = (parsed as { pages?: unknown } | null)?.pages;
+  if (!pages || typeof pages !== 'object') {
+    return sizes;
+  }
+  for (const [key, value] of Object.entries(pages as Record<string, unknown>)) {
+    const size = (value as { size?: unknown } | null)?.size as
+      { width?: unknown; height?: unknown } | undefined;
+    const page = Number(key);
+    if (
+      Number.isInteger(page) &&
+      typeof size?.width === 'number' &&
+      typeof size?.height === 'number'
+    ) {
+      sizes.set(page, { width: size.width, height: size.height });
+    }
+  }
+  return sizes;
+}
+
+/**
+ * Locates each text element in the markdown, recording where it starts and
+ * where it sits on the page.
  *
  * Sequential rather than a global search: the same sentence can occur twice in
  * a document, and the second occurrence is not where the first element lives.
  * Walking forward keeps elements in document order and makes a repeated string
  * match the copy that comes next.
+ *
+ * **This used to keep one anchor per page and now keeps one per element, and
+ * `source_page` is unchanged by that.** The page of a chunk is the page of the
+ * last anchor at or before its start. The cursor advances for every *located*
+ * element — it always did, before the old one-per-page dedup — so the set of
+ * located elements and their offsets do not depend on how many of them are
+ * kept, and offsets ascend. For any offset, the last anchor at or before it
+ * therefore lies in the same run of same-page elements as the single anchor
+ * that run used to contribute, and carries the same page. That is what earns
+ * this change its exemption from an ADR-20 measurement, and
+ * `docling-anchor-regression.test.ts` is the test of it.
+ *
+ * Two invariants hold that argument up. Both are broken by edits that look
+ * obvious, and neither fails loudly:
+ *
+ * 1. **The walk stays `texts`-only.** Folding `tables` or `pictures` into this
+ *    loop adds `indexOf` calls that advance the *shared* cursor, so a later
+ *    text element matches a later occurrence of its string or misses entirely.
+ *    The anchor vanishes and `source_page` changes. Tables can be anchored —
+ *    but only by a second pass with its own cursor, never by widening this
+ *    loop.
+ * 2. **An unusable box drops the region, not the element.** When the page size
+ *    is missing, the element still gets its anchor and still advances the
+ *    cursor. `continue`-ing here is the obvious implementation and it skips the
+ *    cursor advance, with the same cascade as (1).
  */
-function buildPageAnchors(
+function buildTextElementAnchors(
   markdown: string,
   jsonContent: DoclingConvertResponse['document']['json_content'],
-): PageAnchor[] {
+): TextElementAnchor[] {
   const parsed = parseJsonContent(jsonContent);
   const texts = (parsed as { texts?: unknown } | null)?.texts;
   if (!Array.isArray(texts)) {
     return [];
   }
+  const pageSizes = readPageSizes(parsed);
 
-  const anchors: PageAnchor[] = [];
+  const anchors: TextElementAnchor[] = [];
   let cursor = 0;
-  let lastPage: number | null = null;
 
   for (const element of texts) {
     const text = (element as { text?: unknown })?.text;
@@ -95,12 +252,16 @@ function buildPageAnchors(
     }
     cursor = offset + trimmed.length;
 
-    // One anchor per page, at its first located element. Anchors within a page
-    // add nothing — the lookup only needs to know where each page begins.
-    if (page !== lastPage) {
-      anchors.push({ offset, page });
-      lastPage = page;
-    }
+    // An element spanning a page break has several prov entries with different
+    // pages and boxes. Reading prov[0] is inherited behaviour: the chunk gets
+    // the first fragment's page and rectangle and none of the continuation.
+    const region = toRegion(
+      page,
+      (prov[0] as { bbox?: unknown })?.bbox,
+      pageSizes.get(page) ?? null,
+    );
+    // Invariant 2: the region is what may be missing, never the anchor.
+    anchors.push(region ? { offset, page, region } : { offset, page });
   }
 
   return anchors;
@@ -245,7 +406,10 @@ export const convertWithDocling = async (
   }
 
   const pageCount = readPageCount(result.document?.json_content);
-  const pageAnchors = buildPageAnchors(markdown, result.document?.json_content);
+  const pageAnchors = buildTextElementAnchors(
+    markdown,
+    result.document?.json_content,
+  );
 
   logger.info(
     {
@@ -254,6 +418,11 @@ export const convertWithDocling = async (
       markdownLength: markdown.length,
       pageCount,
       pageAnchors: pageAnchors.length,
+      // How many of those carry a box, so a parser change that stops
+      // reporting geometry is visible in the ingest log rather than only as
+      // an overlay that quietly stopped appearing.
+      anchorsWithRegion: pageAnchors.filter((a) => a.region !== undefined)
+        .length,
     },
     'Docling conversion completed',
   );

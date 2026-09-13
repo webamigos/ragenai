@@ -46,6 +46,10 @@ export function toRetrievalEventSource(
     ...(source.pages !== undefined && source.pages.length > 0
       ? { pages: [...source.pages] }
       : {}),
+    // Copied, dropped when empty, same as `pages` and for the same reason.
+    ...(source.sourceRegions !== undefined && source.sourceRegions.length > 0
+      ? { sourceRegions: source.sourceRegions.map((region) => ({ ...region })) }
+      : {}),
     ...(source.snippet !== undefined && source.snippet.length > 0
       ? { snippet: source.snippet }
       : {}),

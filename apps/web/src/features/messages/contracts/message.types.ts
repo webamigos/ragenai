@@ -89,6 +89,10 @@ export type MessageAttachment = {
  * `durationMs` and `relevanceScore` measure a run that has finished and
  * nothing records them, so a reopened thread gets the half that survives
  * rather than a defaulted number wearing the clothes of a measurement.
+ * `sourceRegions` is in the same group for a different reason: the boxes live
+ * on the chunk in Qdrant, not on the retrieval row, so a restored turn has no
+ * way to know which chunk it quoted. It stays absent rather than being
+ * re-derived from a search that might land on a different chunk.
  *
  * Structurally a `MessageRetrieval`, which is what lets the sources block
  * take either one without a translation step between them.

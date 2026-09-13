@@ -1,4 +1,5 @@
 import type { LanguageModelV3 } from '@ai-sdk/provider';
+import type { SourceRegion } from '@ragenai/rag-core';
 import type { ModerationInstance } from '@/app/lib/services/llm';
 import type { EmbeddingsProvider } from '@/libs/llm/types/embeddings';
 
@@ -146,6 +147,20 @@ export interface RetrievedSource {
    * is often not the lowest-numbered one, so `pages[0]` is not `sourcePage`.
    */
   pages?: number[];
+  /**
+   * Where on its page the quoted passage sits, as top-left-origin fractions of
+   * the page box.
+   *
+   * From the **same chunk** as `relevanceScore`, `sourcePage` and `snippet`,
+   * so a highlight points at the passage the card quotes rather than at some
+   * other part of the file. Not a per-file union the way `pages` is: a
+   * rectangle only means anything on one page.
+   *
+   * Absent — never empty — whenever the parser gave no box: every non-Docling
+   * loader, every unpaginated format, and every chunk ingested before the
+   * field existed. A re-index is what gives an old document regions.
+   */
+  sourceRegions?: SourceRegion[];
 }
 
 /**
