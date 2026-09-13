@@ -43,9 +43,21 @@ const refVariable = workflow.match(/--ref="\$([A-Za-z_][A-Za-z0-9_]*)"/)?.[1];
  */
 const refAssignment = refVariable
   ? workflow.match(
-      new RegExp(`^\\s*${refVariable}:\\s*(\\$\\{\\{[^}]*\\}\\})`, 'm'),
+      new RegExp(`^\\s*${refVariable}:\\s*\\$\\{\\{([^}]*)\\}\\}`, 'm'),
     )?.[1]
   : undefined;
+
+/**
+ * The `||` operands of that expression, in order. Compared as a whole list
+ * rather than searched for substrings: `head.sha || github.sha || github.ref`
+ * contains both SHAs and still falls back to a branch ref, and reversing the
+ * two puts `github.sha` first — which on a `pull_request` event is the *merge*
+ * commit, a different tree from the one under review.
+ */
+const refOperands = refAssignment
+  ?.split('||')
+  .map((operand) => operand.trim())
+  .filter(Boolean);
 
 describe(`${INSTALLER_WORKFLOW} scaffolds from a commit, not a branch`, () => {
   it('passes --ref from an environment variable rather than inline', () => {
@@ -56,9 +68,12 @@ describe(`${INSTALLER_WORKFLOW} scaffolds from a commit, not a branch`, () => {
   });
 
   it('names the head commit on a pull request and the pushed commit otherwise', () => {
-    expect(refAssignment).toBeDefined();
-    expect(refAssignment).toContain('github.event.pull_request.head.sha');
-    expect(refAssignment).toContain('github.sha');
+    // Exactly these two, in this order. Every other context that could sit
+    // here is either a branch name or the wrong commit.
+    expect(refOperands).toEqual([
+      'github.event.pull_request.head.sha',
+      'github.sha',
+    ]);
   });
 
   it('never resolves the ref from a branch name', () => {
