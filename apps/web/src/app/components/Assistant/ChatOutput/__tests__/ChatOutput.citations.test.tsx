@@ -58,7 +58,11 @@ const emptyStore = () =>
     reducer: { assistant: assistantReducer, toolApprovals: () => ({}) },
   });
 
-const show = (store = storeWithRetrieval(), shown: MessageDto[] = [answer]) =>
+const show = (
+  store = storeWithRetrieval(),
+  shown: MessageDto[] = [answer],
+  props: { isPublicAccess?: boolean } = {},
+) =>
   render(
     <Provider store={store}>
       <NextIntlClientProvider locale="en" messages={messages}>
@@ -67,6 +71,7 @@ const show = (store = storeWithRetrieval(), shown: MessageDto[] = [answer]) =>
           isLoading={false}
           loadingMessage=""
           streamedMessage={null}
+          {...props}
         />
       </NextIntlClientProvider>
     </Provider>,
@@ -164,5 +169,40 @@ describe('ChatOutput citations — a reopened thread', () => {
 
     expect(screen.getByText(/2 chunks/)).toBeInTheDocument();
     expect(screen.getByText(/90 ms/)).toBeInTheDocument();
+  });
+});
+
+/**
+ * Who gets a source card that can be opened.
+ *
+ * `SourcesBlock` renders a control only when it is handed an `onActivate`, and
+ * that is deliberate: the panel it opens fetches the document from
+ * `/api/files/{id}`, which needs a session and the file's own access check. On
+ * a public share there is neither, so the card would open onto "Failed to load
+ * file." A card that clicks into nothing is worse than one that does not
+ * invite the click.
+ *
+ * The cards themselves stay either way — what the answer was grounded in is
+ * worth showing to anyone who can read the answer.
+ */
+describe('ChatOutput citations — a read-only view', () => {
+  it('offers no control on a public thread', () => {
+    show(storeWithRetrieval(), [answer], { isPublicAccess: true });
+
+    expect(screen.getByRole('region', { name: 'Sources' })).toBeInTheDocument();
+    expect(screen.getByText('umowa.pdf')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Open umowa.pdf' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers the control on an ordinary thread', () => {
+    // The guard on the guard: without this, deleting the whole feature would
+    // satisfy the assertion above.
+    show(storeWithRetrieval(), [answer]);
+
+    expect(
+      screen.getByRole('button', { name: 'Open umowa.pdf' }),
+    ).toBeInTheDocument();
   });
 });

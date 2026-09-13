@@ -76,10 +76,14 @@ export function PdfViewer({ contentUrl, initialPage, highlights }: Props) {
   // A different source was activated while the viewer stayed open. Following
   // the prop rather than ignoring it is the whole point of opening at a page:
   // the second citation a reader clicks must move the view.
+  //
+  // `undefined` means the beginning, on an update as much as on mount — that
+  // is what the prop documents. Ignoring it here would leave the previous
+  // source's page showing for a citation that has no page. Today the two
+  // sources are always different files, so the reload resets it anyway; that
+  // is a property of the dedupe in `operations.ts`, not of this component.
   useEffect(() => {
-    if (initialPage !== undefined) {
-      setRequestedPage(initialPage);
-    }
+    setRequestedPage(initialPage ?? 1);
   }, [initialPage]);
 
   const pageHighlights = (highlights ?? []).filter(

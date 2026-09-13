@@ -79,8 +79,23 @@ describe('chunk metadata', () => {
     (relative) => {
       const code = stripComments(readFileSync(join(ROOT, relative), 'utf8'));
 
-      expect(code).toMatch(/from '@ragenai\/rag-core'/);
-      expect(code).not.toMatch(/type\s+VectorStoreDocumentMetadata\s*=\s*\{/);
+      // The *type* has to come from the package, not merely something. A file
+      // that imports a constant from `@ragenai/rag-core` and then declares its
+      // own `VectorStoreDocumentMetadata` satisfied a bare "imports from
+      // rag-core" check — which is the drift this whole file exists to stop.
+      expect(code).toMatch(
+        /export\s*\{[^}]*\bVectorStoreDocumentMetadata\b[^}]*\}\s*from\s*'@ragenai\/rag-core'/s,
+      );
+
+      // Both spellings of a local declaration. The alias was checked; the
+      // interface was not, and `interface VectorStoreDocumentMetadata {` is
+      // the more natural thing to write.
+      expect(code).not.toMatch(
+        /(?:^|\n)\s*(?:export\s+)?type\s+VectorStoreDocumentMetadata\s*=/,
+      );
+      expect(code).not.toMatch(
+        /(?:^|\n)\s*(?:export\s+)?interface\s+VectorStoreDocumentMetadata\b/,
+      );
     },
   );
 

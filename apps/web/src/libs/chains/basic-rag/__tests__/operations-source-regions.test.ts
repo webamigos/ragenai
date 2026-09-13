@@ -166,6 +166,21 @@ describe('retrieveRelevantDocumentsWithIds — source regions', () => {
     ).toEqual([region, second]);
   });
 
+  it('drops a box that starts on the page but runs off it', async () => {
+    // Passes every per-coordinate check — each of x, y, w, h is in 0–1 — and
+    // still draws a rectangle over the edge. The worker clamps width and
+    // height against the origin so it never writes one, but this reads back
+    // whatever some version of it wrote.
+    expect(
+      await regionsOf([chunkWith([{ page: 1, x: 0.9, y: 0, w: 0.9, h: 0.1 }])]),
+    ).toBeUndefined();
+    expect(
+      await regionsOf([
+        chunkWith([{ page: 1, x: 0, y: 0.95, w: 0.1, h: 0.2 }]),
+      ]),
+    ).toBeUndefined();
+  });
+
   it('keeps a box that touches the page edges', async () => {
     // 0 and 1 are legal: a full-width banner is a real element.
     const edge = { page: 1, x: 0, y: 0, w: 1, h: 1 };

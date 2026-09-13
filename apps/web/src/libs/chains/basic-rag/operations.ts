@@ -511,10 +511,34 @@ function readSourceRegions(value: unknown): SourceRegion[] {
     }
     const inUnitRange = (n: unknown): n is number =>
       typeof n === 'number' && Number.isFinite(n) && n >= 0 && n <= 1;
-    if (![x, y, w, h].every(inUnitRange)) {
+    // Checked one at a time rather than with `every`: a type predicate on an
+    // array narrows the array, not the destructured values, and the arithmetic
+    // below needs them to be numbers. Narrowing here is also what lets the
+    // push be a plain object instead of an `as SourceRegion` cast — the cast
+    // was quietly asserting exactly what this validates.
+    if (
+      !inUnitRange(x) ||
+      !inUnitRange(y) ||
+      !inUnitRange(w) ||
+      !inUnitRange(h)
+    ) {
       continue;
     }
-    regions.push({ page, x, y, w, h } as SourceRegion);
+    // And the box has to *fit* on the page, not merely start and measure
+    // inside it. `x: 0.9, w: 0.9` passes every check above and draws a
+    // rectangle running off the right edge. The worker clamps width and
+    // height against the origin so it never writes one, but this reads back
+    // whatever some version of it wrote.
+    //
+    // The tolerance is for float addition, not for slack: `0.0271 + 0.9729`
+    // is exactly 1 here, but a sum of two decimals is not guaranteed to be,
+    // and a full-width box rejected by one ulp would be a worse bug than the
+    // one this prevents.
+    const FITS_TOLERANCE = 1e-6;
+    if (x + w > 1 + FITS_TOLERANCE || y + h > 1 + FITS_TOLERANCE) {
+      continue;
+    }
+    regions.push({ page, x, y, w, h });
   }
   return regions;
 }

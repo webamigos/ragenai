@@ -269,7 +269,23 @@ const MessageBubbleContent = ({
  * Neither one means the answer's `[n]` stay plain text — which is the honest
  * result, since there would be nothing for a chip to link to.
  */
-const AssistantAnswer = ({ message }: { message: MessageDto }) => {
+const AssistantAnswer = ({
+  message,
+  isPublicAccess,
+}: {
+  message: MessageDto;
+  /**
+   * A read-only view: a public share, a guest thread, or a shared thread
+   * opened read-only.
+   *
+   * The source cards stay, because what the answer was grounded in is worth
+   * showing to anyone who can read the answer. What goes is the *control*:
+   * `/api/files/{id}` needs a session and the file's own access check, so on a
+   * public route the panel would open onto "Failed to load file." A card that
+   * clicks into nothing is worse than one that does not invite the click.
+   */
+  isPublicAccess: boolean;
+}) => {
   const liveRetrieval = useAppSelector(
     (state) => state.assistant.retrievalByMessage[message.id],
   );
@@ -299,7 +315,7 @@ const AssistantAnswer = ({ message }: { message: MessageDto }) => {
         <SourcesBlock
           retrieval={retrieval}
           idPrefix={anchorPrefix}
-          onActivate={setOpenSource}
+          onActivate={isPublicAccess ? undefined : setOpenSource}
         />
       ) : null}
       <CitedSourcePreview
@@ -525,7 +541,10 @@ export const ChatOutput = ({
                   }`}
                 >
                   {message.role === 'ASSISTANT' ? (
-                    <AssistantAnswer message={message} />
+                    <AssistantAnswer
+                      message={message}
+                      isPublicAccess={isPublicAccess}
+                    />
                   ) : (
                     <MessageBubbleContent
                       content={message.content}

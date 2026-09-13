@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 
@@ -166,5 +166,121 @@ describe('CitedSourcePreview', () => {
     await userEvent.keyboard('{Escape}');
 
     expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Keyboard access to the panel.
+ *
+ * `role="dialog"` and `aria-modal="true"` describe the panel to a screen
+ * reader; neither moves focus and neither changes the Tab order. Without the
+ * three behaviours below, a keyboard user activates a source card, and focus
+ * stays on the card behind the scrim — Tab then walks the thread underneath,
+ * where every control is live and nothing says they have left the dialog.
+ */
+describe('CitedSourcePreview — keyboard access', () => {
+  /** A card to open the panel from, so focus has somewhere to go back to. */
+  const withTrigger = (onClose = vi.fn()) => {
+    const utils = render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <>
+          <button type="button">Open umowa.pdf</button>
+          <CitedSourcePreview source={null} onClose={onClose} />
+        </>
+      </NextIntlClientProvider>,
+    );
+    const trigger = screen.getByRole('button', { name: 'Open umowa.pdf' });
+    trigger.focus();
+    const open = () =>
+      utils.rerender(
+        <NextIntlClientProvider locale="en" messages={messages}>
+          <>
+            <button type="button">Open umowa.pdf</button>
+            <CitedSourcePreview source={source()} onClose={onClose} />
+          </>
+        </NextIntlClientProvider>,
+      );
+    const close = () =>
+      utils.rerender(
+        <NextIntlClientProvider locale="en" messages={messages}>
+          <>
+            <button type="button">Open umowa.pdf</button>
+            <CitedSourcePreview source={null} onClose={onClose} />
+          </>
+        </NextIntlClientProvider>,
+      );
+    return { trigger, open, close };
+  };
+
+  it('moves focus into the panel when it opens', () => {
+    const { trigger, open } = withTrigger();
+    expect(document.activeElement).toBe(trigger);
+
+    open();
+
+    expect(document.activeElement).toBe(screen.getByRole('dialog'));
+  });
+
+  it('hands focus back to the card that opened it', () => {
+    const { trigger, open, close } = withTrigger();
+    open();
+    expect(document.activeElement).not.toBe(trigger);
+
+    close();
+
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('wraps Tab from the last control back to the first', async () => {
+    const { open } = withTrigger();
+    open();
+    const dialog = screen.getByRole('dialog');
+    const closeButton = within(dialog).getByRole('button', { name: 'Close' });
+    closeButton.focus();
+
+    await userEvent.tab();
+
+    // The close button is the only Tab stop the mocked viewer leaves, so
+    // wrapping lands back on it rather than escaping to the page behind.
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it('wraps Shift+Tab from the panel to the last control', async () => {
+    const { open } = withTrigger();
+    open();
+    const dialog = screen.getByRole('dialog');
+    expect(document.activeElement).toBe(dialog);
+
+    await userEvent.tab({ shift: true });
+
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    expect(document.activeElement).toBe(
+      within(dialog).getByRole('button', { name: 'Close' }),
+    );
+  });
+
+  it('never lets Tab reach the thread behind the scrim', async () => {
+    const { trigger, open } = withTrigger();
+    open();
+    const dialog = screen.getByRole('dialog');
+
+    for (let i = 0; i < 5; i += 1) {
+      await userEvent.tab();
+      expect(document.activeElement).not.toBe(trigger);
+      expect(dialog.contains(document.activeElement)).toBe(true);
+    }
+  });
+
+  it('is the panel that carries the dialog role, not the scrim', () => {
+    // The scrim is chrome. Inside the dialog, a screen reader announces it as
+    // the dialog's first child — a clickable nothing.
+    const { open } = withTrigger();
+    open();
+
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.contains(screen.getByTestId('cited-source-overlay'))).toBe(
+      false,
+    );
+    expect(dialog).toHaveAccessibleName('umowa.pdf');
   });
 });

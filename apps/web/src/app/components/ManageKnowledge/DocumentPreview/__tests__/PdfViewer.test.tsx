@@ -223,6 +223,26 @@ describe('PdfViewer — highlights', () => {
     expect(screen.getByText(/Strona 9 z 12/)).toBeInTheDocument();
   });
 
+  it('goes back to the beginning when the next source has no page', async () => {
+    // `initialPage: undefined` means "start at the beginning" on an update as
+    // much as on mount. Leaving the previous source's page showing would put
+    // a citation with no page on page 3 of the one before it.
+    const { rerender } = renderViewer({
+      contentUrl: '/api/files/abc',
+      initialPage: 3,
+    });
+    await screen.findByTestId('pdf-page');
+    expect(screen.getByText(/Strona 3 z 12/)).toBeInTheDocument();
+
+    rerender(
+      <NextIntlClientProvider locale="pl" messages={messages}>
+        <PdfViewer contentUrl="/api/files/abc" />
+      </NextIntlClientProvider>,
+    );
+
+    expect(screen.getByText(/Strona 1 z 12/)).toBeInTheDocument();
+  });
+
   it('draws one box per region on the page being shown', async () => {
     renderViewer({
       contentUrl: '/api/files/abc',
