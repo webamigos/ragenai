@@ -98,10 +98,12 @@ export const MANIFEST: ManifestEntry[] = [
     value: 'sk-litellm-dev-key',
   },
   {
-    // docker-compose.yml maps Postgres to host port 55432, not the 5432 that
-    // both .env.example files show — a native/other Postgres on 5432 would
-    // otherwise silently answer instead of the container. See
-    // docs/lessons.md.
+    // docker-compose.yml maps Postgres to host port 55432. A native or other
+    // Postgres on 5432 would otherwise silently answer instead of the
+    // container, and report success against the wrong database. The
+    // `.env.example` files used to disagree with this value; they no longer
+    // do, and `tests/architecture/docs-name-the-published-service-ports.test.ts`
+    // keeps it that way. See docs/lessons.md.
     key: 'DATABASE_URL',
     strategy: 'local-default',
     targets: ['root', 'admin'],

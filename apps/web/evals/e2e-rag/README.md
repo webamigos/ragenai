@@ -81,12 +81,12 @@ directory:
 
 ```bash
 # apps/web
-DATABASE_URL=postgresql://postgres:pass123@localhost:5432/ragen_e2e \
+DATABASE_URL=postgresql://postgres:pass123@localhost:55432/ragen_e2e \
 STORAGE_PROVIDER=local STORAGE_LOCAL_PATH=/tmp/ragen-eval-storage \
 LITELLM_PROXY_URL=http://localhost:4000 npm run dev
 
 # apps/worker
-DATABASE_URL=postgresql://postgres:pass123@localhost:5432/ragen_e2e \
+DATABASE_URL=postgresql://postgres:pass123@localhost:55432/ragen_e2e \
 STORAGE_PROVIDER=local STORAGE_LOCAL_PATH=/tmp/ragen-eval-storage \
 PDF_MODEL=gemini-3-flash-preview FEATURE_FLAG_PII_MASKING=1 npm run worker:dev
 ```
@@ -107,7 +107,7 @@ one — the script creates and then deletes a file record.
 ## Running
 
 ```bash
-DATABASE_URL=postgresql://postgres:pass123@localhost:5432/ragen_e2e \
+DATABASE_URL=postgresql://postgres:pass123@localhost:55432/ragen_e2e \
   npm run eval:e2e-rag
 ```
 

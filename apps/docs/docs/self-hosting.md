@@ -114,8 +114,8 @@ vectors incompatible. Re-index everything when you change it.
 ## Minimum environment
 
 ```bash
-DATABASE_URL="postgresql://postgres:<GENERATED_DB_PASSWORD>@localhost:5432/ragen"
-DATABASE_DIRECT_URL="postgresql://postgres:<GENERATED_DB_PASSWORD>@localhost:5432/ragen"
+DATABASE_URL="postgresql://postgres:<GENERATED_DB_PASSWORD>@localhost:55432/ragen"
+DATABASE_DIRECT_URL="postgresql://postgres:<GENERATED_DB_PASSWORD>@localhost:55432/ragen"
 
 QDRANT_URL=http://localhost:6333
 LITELLM_PROXY_URL=http://localhost:4000

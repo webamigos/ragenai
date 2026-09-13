@@ -31,7 +31,7 @@ Postgres has to be up (`docker compose up`). One time:
 
 ```bash
 createdb ragen_e2e   # or CREATE DATABASE from any client; `createdb` is not always installed
-DATABASE_URL="postgresql://postgres:pass123@localhost:5432/ragen_e2e" npx prisma migrate deploy
+DATABASE_URL="postgresql://postgres:pass123@localhost:55432/ragen_e2e" npx prisma migrate deploy
 # .env.e2e.local (root and/or apps/web) overrides DATABASE_URL / DATABASE_DIRECT_URL
 ```
 
@@ -69,7 +69,7 @@ To rebuild the database when the seed's assumptions have changed — Prisma's ow
 command, so it needs neither `psql` nor `createdb`:
 
 ```bash
-DATABASE_URL="postgresql://postgres:pass123@localhost:5432/ragen_e2e" \
+DATABASE_URL="postgresql://postgres:pass123@localhost:55432/ragen_e2e" \
   npx prisma migrate reset --force --skip-seed
 ```
 
